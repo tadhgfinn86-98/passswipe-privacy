@@ -1,0 +1,67 @@
+{
+  "name": "matched-betting-terminal",
+  "productName": "Matched Betting Terminal",
+  "version": "1.0.0",
+  "description": "Bloomberg-style desktop terminal for tracking matched betting offers, bets and bankroll.",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "author": {
+    "name": "Matched Betting Terminal"
+  },
+  "scripts": {
+    "icon": "node scripts/make-icon.mjs",
+    "dev": "node scripts/dev.mjs",
+    "build": "vite build",
+    "preview": "npm run build && electron .",
+    "dist": "npm run icon && vite build && electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "@fontsource/ibm-plex-mono": "^5.0.13",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^5.4.11"
+  },
+  "build": {
+    "appId": "com.matchedbetting.terminal",
+    "productName": "Matched Betting Terminal",
+    "copyright": "Matched Betting Terminal",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "MatchedBettingTerminal-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Matched Betting Terminal",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}
