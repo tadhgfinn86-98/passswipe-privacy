@@ -33,6 +33,7 @@
       "output": "release",
       "buildResources": "build"
     },
+    "publish": [],
     "files": [
       "dist/**/*",
       "electron/**/*",
