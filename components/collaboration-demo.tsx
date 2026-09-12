@@ -97,7 +97,8 @@ export function CollaborationDemo() {
         </div>
       </div>
 
-      <div className="flex min-h-[400px] flex-col gap-3.5 p-4 sm:p-5">
+      <div className="flex min-h-[400px] flex-col p-4 sm:p-5">
+        <div className="flex flex-1 flex-col justify-end gap-3.5">
         {thread.slice(0, visible).map((entry, index) => {
           if (entry.kind === "tasks") {
             return (
@@ -215,7 +216,9 @@ export function CollaborationDemo() {
           ) : null}
         </AnimatePresence>
 
-        <div className="mt-auto flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5">
+        </div>
+
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5">
           <Paperclip className="size-3.5 text-subtle-foreground" />
           <span className="flex-1 text-[12.5px] text-subtle-foreground">
             Reply or ask the agent…

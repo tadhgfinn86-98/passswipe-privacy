@@ -162,7 +162,8 @@ export function AgentPreview() {
               </button>
             </div>
 
-            <div className="flex flex-1 flex-col gap-3 overflow-hidden p-4 sm:p-5">
+            <div className="flex flex-1 flex-col overflow-hidden p-4 sm:p-5">
+              <div className="flex flex-1 flex-col justify-end gap-3">
               {/* User message */}
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
@@ -312,8 +313,10 @@ export function AgentPreview() {
                 </div>
               </div>
 
+              </div>
+
               {/* Composer */}
-              <div className="mt-auto flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5">
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5">
                 <span className="flex-1 truncate text-[12.5px] text-subtle-foreground">
                   Ask your agent anything…
                 </span>

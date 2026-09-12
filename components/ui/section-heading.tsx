@@ -39,10 +39,10 @@ export function SectionHeading({
         <h2
           id={titleId}
           className={cn(
-            "max-w-3xl text-balance-tight font-semibold",
+            "text-balance-tight font-semibold",
             size === "compact"
-              ? "text-[length:var(--text-h3)]"
-              : "text-[length:var(--text-h2)]",
+              ? "max-w-xl text-[length:var(--text-h3)]"
+              : "max-w-[54rem] text-[length:var(--text-h2)]",
             tone === "dark" ? "text-white" : "text-foreground",
           )}
         >
