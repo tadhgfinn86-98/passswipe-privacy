@@ -1,0 +1,5 @@
+# The desk's own dependencies. Engines bring their own, in their own venvs.
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pydantic>=2.6
+pywebview>=4.4     # native desktop window; falls back to a browser tab if absent

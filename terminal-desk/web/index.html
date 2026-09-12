@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fund Desk — Terminal Desk</title>
+    <link rel="stylesheet" href="/desk/desk.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">FUND&nbsp;DESK</div>
+      <nav class="tabs">
+        <button class="tab is-active" data-view="engines">ENGINES</button>
+        <button class="tab" data-view="run">RUN</button>
+        <button class="tab" data-view="history">HISTORY</button>
+      </nav>
+      <div class="status" id="auth-status">checking…</div>
+    </header>
+
+    <main>
+      <!-- ENGINES ------------------------------------------------------- -->
+      <section class="view is-active" data-view="engines">
+        <p class="lede">
+          Four engines, one schema. Each reports analysts&nbsp;&rarr; convictions
+          &rarr; weights &rarr; risk &rarr; orders, so their books can be read
+          side by side.
+        </p>
+        <div id="engine-grid" class="grid">
+          <div class="loading">loading engines…</div>
+        </div>
+      </section>
+
+      <!-- RUN ----------------------------------------------------------- -->
+      <section class="view" data-view="run">
+        <form id="run-form" class="panel">
+          <div class="field">
+            <label for="engine">ENGINE</label>
+            <select id="engine" name="engine"></select>
+          </div>
+          <div class="field">
+            <label for="universe">UNIVERSE</label>
+            <input id="universe" name="universe" placeholder="BTC_USDT, ETH_USDT" />
+            <small id="universe-hint"></small>
+          </div>
+          <div class="field">
+            <label for="capital">CAPITAL</label>
+            <input id="capital" name="capital" type="number" value="100000" min="1000" step="1000" />
+          </div>
+          <div class="field">
+            <label for="mode">MODE</label>
+            <select id="mode" name="mode">
+              <option value="cycle">Run one cycle</option>
+              <option value="backtest">Backtest</option>
+            </select>
+          </div>
+          <div class="field date-range" hidden>
+            <label for="start">RANGE</label>
+            <div class="row">
+              <input id="start" type="date" />
+              <input id="end" type="date" />
+            </div>
+          </div>
+          <button type="submit" class="go" id="run-button">EXECUTE</button>
+        </form>
+        <div id="run-output" class="output"></div>
+      </section>
+
+      <!-- HISTORY ------------------------------------------------------- -->
+      <section class="view" data-view="history">
+        <div class="panel-head">
+          <h2>RUN HISTORY</h2>
+          <button id="refresh-history" class="ghost">REFRESH</button>
+        </div>
+        <div id="history-body"><div class="loading">loading…</div></div>
+      </section>
+    </main>
+
+    <script src="/desk/desk.js"></script>
+  </body>
+</html>
