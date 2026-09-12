@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ *
+ * Design tokens
+ * ------------------------------------------------------------------ */
+:root {
+  --background: #ffffff;
+  --surface: #fbfbfc;
+  --surface-strong: #f4f4f6;
+  --card: #ffffff;
+  --card-muted: #f8f8fa;
+  --foreground: #0a0a0b;
+  --foreground-muted: #585d64;
+  --foreground-subtle: #6b7076;
+  --border: rgba(9, 9, 11, 0.08);
+  --border-strong: rgba(9, 9, 11, 0.14);
+  --brand: #4f46e5;
+  --brand-hover: #4338ca;
+  --brand-soft: rgba(79, 70, 229, 0.08);
+  --brand-ring: rgba(79, 70, 229, 0.35);
+  --brand-contrast: #ffffff;
+  --accent-sky: #0ea5e9;
+  --success: #15a34a;
+  --warning: #d97706;
+
+  --shadow-subtle: 0 1px 2px rgba(9, 9, 11, 0.04), 0 1px 1px rgba(9, 9, 11, 0.03);
+  --shadow-card: 0 1px 2px rgba(9, 9, 11, 0.04), 0 8px 24px -12px rgba(9, 9, 11, 0.12);
+  --shadow-raised: 0 2px 4px rgba(9, 9, 11, 0.04), 0 18px 40px -16px rgba(9, 9, 11, 0.18);
+  --shadow-window: 0 1px 1px rgba(9, 9, 11, 0.04), 0 12px 28px -12px rgba(9, 9, 11, 0.14),
+    0 48px 80px -32px rgba(9, 9, 11, 0.22);
+
+  --grid-line: rgba(9, 9, 11, 0.055);
+}
+
+.dark {
+  --background: #08090a;
+  --surface: #0b0c0e;
+  --surface-strong: #121417;
+  --card: #111315;
+  --card-muted: #16181b;
+  --foreground: #f3f4f5;
+  --foreground-muted: #9ba1a8;
+  --foreground-subtle: #7a8088;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --brand: #7f7bf5;
+  --brand-hover: #918dfa;
+  --brand-soft: rgba(127, 123, 245, 0.12);
+  --brand-ring: rgba(127, 123, 245, 0.45);
+  --brand-contrast: #0a0a0b;
+  --accent-sky: #38bdf8;
+  --success: #34d07f;
+  --warning: #f5b544;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.4), 0 18px 40px -16px rgba(0, 0, 0, 0.75);
+  --shadow-window: 0 1px 1px rgba(0, 0, 0, 0.5), 0 12px 28px -12px rgba(0, 0, 0, 0.8),
+    0 48px 80px -32px rgba(0, 0, 0, 0.9);
+
+  --grid-line: rgba(255, 255, 255, 0.055);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-card: var(--card);
+  --color-card-muted: var(--card-muted);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--foreground-muted);
+  --color-subtle-foreground: var(--foreground-subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-contrast: var(--brand-contrast);
+  --color-sky-accent: var(--accent-sky);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+
+  --shadow-subtle: var(--shadow-subtle);
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-window: var(--shadow-window);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --text-display: clamp(2.5rem, 1.1rem + 5.4vw, 5rem);
+  --text-h2: clamp(2rem, 1.2rem + 2.6vw, 3.25rem);
+  --text-h3: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  section[id] {
+    scroll-margin-top: 6.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    ::after,
+    ::before {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Utilities
+ * ------------------------------------------------------------------ */
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2.5rem;
+  }
+}
+
+@utility text-balance-tight {
+  text-wrap: balance;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+@utility bg-grid-faint {
+  background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+@utility bg-dots-faint {
+  background-image: radial-gradient(var(--grid-line) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@utility surface-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+@utility mask-fade-x {
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+@utility mask-fade-b {
+  mask-image: linear-gradient(to bottom, black 55%, transparent);
+}
+
+/* Marquee + ambient keyframes */
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes soft-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+@keyframes drift-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+.animate-marquee-x {
+  animation: marquee-x 48s linear infinite;
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2.4s ease-in-out infinite;
+}
+
+.animate-dash-flow {
+  animation: dash-flow 1.2s linear infinite;
+}
+
+.animate-drift-y {
+  animation: drift-y 9s ease-in-out infinite;
+}
+
+.pause-on-hover:hover .animate-marquee-x,
+.pause-on-hover:focus-within .animate-marquee-x {
+  animation-play-state: paused;
+}
+
+/* Thin, unobtrusive scrollbars for horizontal rails */
+.rail-scroll {
+  scrollbar-width: none;
+}
+.rail-scroll::-webkit-scrollbar {
+  display: none;
+}
