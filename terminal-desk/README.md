@@ -20,10 +20,19 @@ next to a deterministic baseline's on the same screen.
 
 ## Quick start
 
+Needs Python 3.11+, Node 20+ and git. No Docker.
+
 ```bash
 python scripts/setup.py --deps      # fetch the four upstreams, install their deps
-python -m desk.serve --desktop      # native window
+python run.py --desktop             # native window
 ```
+
+Setup prints your terminal login at the end. It takes a few minutes — it's
+cloning four repos, building a React bundle and installing some heavy wheels.
+
+Use `run.py` rather than calling `desk.serve` directly: the desk imports the
+terminal's FastAPI app, so it has to run in the terminal's venv, and `run.py`
+finds that interpreter and re-execs into it.
 
 Without `--desktop` it serves at `http://127.0.0.1:8765` and opens a browser tab.
 The desk is at `/desk`; the full terminal is at `/login` on the same port.

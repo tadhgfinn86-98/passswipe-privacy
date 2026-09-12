@@ -118,6 +118,28 @@ def install_requirements(root: Path, name: str) -> None:
         )
 
 
+def install_desk_requirements(terminal_root: Path) -> None:
+    """Install the desk's own dependencies into the terminal's venv.
+
+    The desk imports the terminal's FastAPI app, so the two have to share an
+    interpreter — and that interpreter is the terminal's venv. Installing the
+    desk's handful of extras there (pywebview, mainly) is what makes
+    `python run.py --desktop` work without the user assembling a fourth
+    environment by hand.
+    """
+    python = venv_python(terminal_root / ".venv")
+    if not python.exists():
+        return
+    requirements = Path(__file__).resolve().parents[1] / "requirements.txt"
+    if not requirements.exists():
+        return
+    print("[desk] installing the desk's own dependencies into the terminal venv")
+    if have_uv():
+        run(["uv", "pip", "install", "--python", str(python), "-r", str(requirements)], check=False)
+    else:
+        run([str(python), "-m", "pip", "install", "-r", str(requirements)], check=False)
+
+
 def build_terminal_frontend(root: Path) -> None:
     """Build OpenTerminalUI's React bundle — without it the shell serves nothing."""
     frontend = root / "frontend"
@@ -189,12 +211,13 @@ def main() -> int:
         if args.deps:
             install_requirements(root, name)
             if name == "OpenTerminalUI":
+                install_desk_requirements(root)
                 if not args.skip_frontend:
                     build_terminal_frontend(root)
                 prepare_terminal(root)
         print()
 
-    print("Done. Start the desk with:  python -m desk.serve")
+    print("Done. Start the desk with:  python run.py --desktop")
     return 0
 
 
