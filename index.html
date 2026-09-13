@@ -64,19 +64,24 @@
 <main id="main">
 
 <!-- ================================ HERO =============================== -->
-<section class="band surface-light hero" id="top">
-  <div class="container">
-    <p class="eyebrow">Ripple Recycling</p>
-    <h1 class="display balance hero__headline">Stop overpaying<br>for waste.</h1>
-    <p class="body-lg hero__sub">Most businesses overpay for waste. We find out by how much.</p>
+<section class="band surface-light hero hero--split" id="top">
+  <div class="container hero__grid">
 
-    <div class="btn-row btn-row--center" style="margin-top:32px">
-      <a class="btn btn--primary" href="#audit">Get my free audit</a>
-      <a class="btn btn--ghost" href="#how">See how it works</a>
+    <div>
+      <p class="eyebrow">Ripple Recycling</p>
+      <h1 class="display hero__headline">Stop overpaying for waste.</h1>
+      <p class="body-lg hero__sub">Most businesses overpay for waste. We find out by how much.</p>
+
+      <form class="inline-form" data-quick-form novalidate>
+        <label class="visually-hidden" for="hero-email">Your email</label>
+        <input id="hero-email" type="email" name="email" placeholder="your@business.com" autocomplete="email" required>
+        <a class="btn btn--primary" href="#audit">Get my free audit</a>
+      </form>
+
+      <p class="caption hero__terms" style="margin-top:16px">
+        One invoice. A few photos. A straight answer. Free, and no obligation.
+      </p>
     </div>
-
-    <p class="body-21 hero__meta">One invoice. A few photos. A straight answer.</p>
-    <p class="caption hero__terms">Free. No obligation. No awkward sales call.</p>
 
     <!-- Product surface: your bill, read properly -->
     <div class="render surface-dark">
@@ -93,13 +98,13 @@
         <div class="invoice__total"><span>Total</span><span>£1,535</span></div>
       </div>
 
-      <svg class="render__arrow" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg class="render__arrow" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M5 12h14M13 6l6 6-6 6"/>
       </svg>
 
       <div class="paper-card surface-light">
         <span class="label">What we found</span>
-        <p class="result__figure" style="margin-top:16px">£4,680</p>
+        <p class="result__figure" style="margin-top:12px">£4,680</p>
         <p class="body muted">potential annual saving</p>
         <div class="result__bar"><span style="width:26%"></span></div>
         <div class="invoice__row" style="border:0;padding-top:0"><span>Collections</span><span>4 → 3 weekly</span></div>
@@ -107,7 +112,10 @@
         <div class="invoice__row" style="border:0;padding-top:0"><span>Charges</span><span>Renegotiated</span></div>
       </div>
     </div>
-    <p class="micro muted center" style="margin-top:16px;max-width:560px">
+
+  </div>
+  <div class="container">
+    <p class="micro muted" style="margin-top:20px;max-width:620px">
       Illustrative example of an audit output. Replace with a real, client-approved result before launch.
     </p>
   </div>
@@ -203,52 +211,157 @@
       </article>
     </div>
 
-    <div class="reveal" style="margin-top:56px">
-      <p class="body-21 measure">
-        No complicated sales pitch. No three-hour consultation. No pressure. No "just sign here."
-      </p>
-      <p class="heading-sm" style="margin-top:24px">Give us the numbers.<br>We'll give you the answer.</p>
+    <p class="body-21 muted reveal" style="margin-top:56px;max-width:52ch">
+      No complicated sales pitch. No three-hour consultation. No pressure. No "just sign here."
+    </p>
+  </div>
+</section>
+
+<!-- ============================ FEATURE BANDS =========================== -->
+<!-- One claim, one visual that demonstrates it, alternating sides. -->
+
+<section class="band surface-light" id="what-we-do">
+  <div class="container">
+    <p class="section-title reveal" style="margin-bottom:56px">What we actually do.</p>
+
+    <div class="feature reveal">
+      <div class="feature__copy">
+        <p class="label">01 — Rates</p>
+        <h3 class="heading-sm" style="margin-top:16px">Find better rates</h3>
+        <p class="body-21 muted">
+          We compare your current arrangements against alternative suppliers and local market
+          options. If there's a better deal, we'll find it.
+        </p>
+      </div>
+
+      <div class="visual surface-dark">
+        <div class="visual__head">
+          <span class="label">Sourced quotes</span>
+          <span class="micro muted">Per month</span>
+        </div>
+
+        <div class="quote-row quote-row--current">
+          <span>Your current supplier</span><span>£1,535</span>
+          <span class="quote-row__bar"><span style="width:100%"></span></span>
+        </div>
+        <div class="quote-row">
+          <span>Operator A</span><span>£1,310</span>
+          <span class="quote-row__bar"><span style="width:85%"></span></span>
+        </div>
+        <div class="quote-row quote-row--best">
+          <span>Operator B <span class="quote-row__tag">Best fit</span></span><span>£1,145</span>
+          <span class="quote-row__bar"><span style="width:75%"></span></span>
+        </div>
+        <div class="quote-row">
+          <span>Operator C</span><span>£1,240</span>
+          <span class="quote-row__bar"><span style="width:81%"></span></span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- =============================== OFFER =============================== -->
-<section class="band surface-light" id="what-we-do">
+<section class="band surface-dark">
   <div class="container">
-    <div class="reveal" style="max-width:760px">
-      <p class="section-title">What we actually do.</p>
+    <div class="feature feature--flip reveal">
+      <div class="feature__copy">
+        <p class="label">02 — Collections</p>
+        <h3 class="heading-sm" style="margin-top:16px">Manage collections</h3>
+        <p class="body-21 muted">
+          Bins. Skips. Recycling. General waste. We coordinate the right service around your
+          operation — not the other way around.
+        </p>
+      </div>
+
+      <div class="visual surface-light">
+        <div class="visual__head">
+          <span class="label">Weekly schedule</span>
+          <span class="micro muted">4 → 3 collections</span>
+        </div>
+
+        <div class="schedule" role="img" aria-label="Weekly collection schedule: general waste Monday and Thursday, recycling Wednesday, Saturday collection dropped.">
+          <div><p class="schedule__day">Mon</p><div class="schedule__slot schedule__slot--on">GEN</div></div>
+          <div><p class="schedule__day">Tue</p><div class="schedule__slot"></div></div>
+          <div><p class="schedule__day">Wed</p><div class="schedule__slot schedule__slot--on">REC</div></div>
+          <div><p class="schedule__day">Thu</p><div class="schedule__slot schedule__slot--on">GEN</div></div>
+          <div><p class="schedule__day">Fri</p><div class="schedule__slot"></div></div>
+          <div><p class="schedule__day">Sat</p><div class="schedule__slot schedule__slot--dropped">CUT</div></div>
+          <div><p class="schedule__day">Sun</p><div class="schedule__slot"></div></div>
+        </div>
+
+        <div class="schedule__legend">
+          <span><i class="schedule__key schedule__key--on"></i>Scheduled collection</span>
+          <span><i class="schedule__key schedule__key--cut"></i>Dropped — container was never full</span>
+        </div>
+      </div>
     </div>
+  </div>
+</section>
 
-    <div class="grid grid--4 reveal" style="margin-top:48px">
-      <article class="card card--tall surface-dark">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M8 7h6.5a2.5 2.5 0 0 1 0 5H9a2.5 2.5 0 0 0 0 5h7"/></svg>
-        <h3 class="subheading card__title">Find better rates</h3>
-        <p class="card__body">We compare your current arrangements against alternative suppliers and local market options. If there's a better deal, we'll find it.</p>
-      </article>
+<section class="band surface-light">
+  <div class="container">
+    <div class="feature reveal">
+      <div class="feature__copy">
+        <p class="label">03 — Diversion</p>
+        <h3 class="heading-sm" style="margin-top:16px">Track what you divert</h3>
+        <p class="body-21 muted">
+          Every tonne matters. We track where your waste goes and how much is diverted from
+          disposal — so you can see the result, not just hear about it.
+        </p>
+      </div>
 
-      <article class="card card--tall surface-dark">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8ZM8 8V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v3M9 13h6"/></svg>
-        <h3 class="subheading card__title">Manage collections</h3>
-        <p class="card__body">Bins. Skips. Recycling. General waste. We coordinate the right service around your operation — not the other way around.</p>
-      </article>
+      <div class="visual surface-dark">
+        <div class="visual__head">
+          <span class="label">Diverted from disposal</span>
+          <span class="micro muted">Last 12 months</span>
+        </div>
 
-      <article class="card card--tall surface-dark">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1ZM14 3v6h6M9 14l2 2 4-4"/></svg>
-        <h3 class="subheading card__title">Keep you compliant</h3>
-        <p class="card__body">Waste comes with paperwork. Duty of Care. Transfer notes. Documentation. Records. We help keep the admin under control.</p>
-      </article>
+        <p class="divert__figure" style="margin-top:20px">82%</p>
+        <div class="divert__track" role="img" aria-label="54 percent recycled, 28 percent recovered, 18 percent to disposal.">
+          <span class="divert__seg-1" style="width:54%"></span>
+          <span class="divert__seg-2" style="width:28%"></span>
+          <span class="divert__seg-3" style="width:18%"></span>
+        </div>
 
-      <article class="card card--tall surface-dark">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-6M22 19H2"/></svg>
-        <h3 class="subheading card__title">Track what you divert</h3>
-        <p class="card__body">Every tonne matters. We track where your waste goes and how much is diverted from disposal — so you can see the result, not just hear about it.</p>
-      </article>
+        <div class="divert__key">
+          <div><i class="divert__seg-1"></i><span>Recycled</span><span>41.2 t</span></div>
+          <div><i class="divert__seg-2"></i><span>Recovered</span><span>21.4 t</span></div>
+          <div><i class="divert__seg-3"></i><span>To disposal</span><span>13.7 t</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band surface-dark band--tight">
+  <div class="container">
+    <div class="feature feature--flip reveal">
+      <div class="feature__copy">
+        <p class="label">04 — Compliance</p>
+        <h3 class="heading-sm" style="margin-top:16px">Keep you compliant</h3>
+        <p class="body-21 muted">
+          Waste comes with paperwork. Duty of Care. Transfer notes. Documentation. Records.
+          We help keep the admin under control.
+        </p>
+      </div>
+
+      <div class="visual surface-light">
+        <div class="doc-list">
+          <div><span>Duty of Care transfer notes</span><span>On file</span></div>
+          <div><span>Waste carrier licences</span><span>Verified</span></div>
+          <div><span>Consignment records</span><span>On file</span></div>
+          <div><span>Annual waste returns</span><span>Prepared</span></div>
+        </div>
+        <p class="micro muted" style="margin-top:20px">
+          The legal duty of care stays with your business. We keep the paperwork in order.
+        </p>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- =========================== INDEPENDENCE ============================ -->
-<section class="band surface-dark">
+<section class="band surface-light">
   <div class="container split reveal">
     <div>
       <h2 class="heading-lg">One broker.<br>Less waste.<br>Less admin.</h2>
@@ -267,7 +380,7 @@
 </section>
 
 <!-- ============================= INDUSTRIES ============================ -->
-<section class="band surface-light" id="waste">
+<section class="band surface-dark" id="waste">
   <div class="container">
     <div class="reveal" style="max-width:820px">
       <p class="section-title">Who it's for.</p>
@@ -275,7 +388,7 @@
     </div>
 
     <div class="grid grid--3 reveal" style="margin-top:56px">
-      <article class="finish-card surface-dark">
+      <article class="finish-card surface-light">
         <p class="label">Restaurants</p>
         <h3 class="heading-sm" style="margin-top:20px">Keep the kitchen moving.</h3>
         <p class="body muted" style="margin-top:16px">
@@ -287,7 +400,7 @@
         <p class="body-21 finish-card__foot">We'll handle the rest.</p>
       </article>
 
-      <article class="finish-card surface-dark">
+      <article class="finish-card surface-light">
         <p class="label">Warehouses</p>
         <h3 class="heading-sm" style="margin-top:20px">More control.<br>Less waste.</h3>
         <p class="body muted" style="margin-top:16px">
@@ -299,7 +412,7 @@
         <p class="body-21 finish-card__foot">Every stream accounted for.</p>
       </article>
 
-      <article class="finish-card surface-dark">
+      <article class="finish-card surface-light">
         <p class="label">Offices &amp; commercial</p>
         <h3 class="heading-sm" style="margin-top:20px">Simpler by default.</h3>
         <p class="body muted" style="margin-top:16px">
@@ -315,7 +428,7 @@
 </section>
 
 <!-- ============================ WASTE WINS ============================= -->
-<section class="band surface-dark" id="results">
+<section class="band surface-light" id="results">
   <div class="container">
     <div class="reveal" style="max-width:820px">
       <p class="eyebrow eyebrow--new">Waste Wins</p>
@@ -329,7 +442,7 @@
   <div class="container">
     <div class="gallery reveal" data-gallery role="region" aria-label="Waste Wins results">
 
-      <article class="win surface-light">
+      <article class="win surface-dark">
         <p class="win__sector">Restaurant</p>
         <hr class="win__rule">
         <p class="label">Before</p>
@@ -344,7 +457,7 @@
         </div>
       </article>
 
-      <article class="win surface-light">
+      <article class="win surface-dark">
         <p class="win__sector">Warehouse</p>
         <hr class="win__rule">
         <p class="win__figure">32%</p>
@@ -357,7 +470,7 @@
         </div>
       </article>
 
-      <article class="win surface-light">
+      <article class="win surface-dark">
         <p class="win__sector">Office</p>
         <hr class="win__rule">
         <p class="win__figure">£2,840</p>
@@ -369,7 +482,7 @@
         </div>
       </article>
 
-      <article class="win surface-light">
+      <article class="win surface-dark">
         <p class="win__sector">Your business</p>
         <hr class="win__rule">
         <h3 class="heading-sm">What would yours say?</h3>
@@ -392,19 +505,18 @@
 </section>
 
 <!-- =========================== SOCIAL PROOF ============================ -->
-<section class="band surface-light">
+<section class="band surface-dark">
   <div class="container">
-    <div class="reveal" style="max-width:760px">
-      <p class="section-title">What clients say.</p>
-    </div>
 
     <!-- PLACEHOLDER CONTENT ------------------------------------------------
          These quotes are written to the right shape but they are NOT real.
          Replace every quote and attribution with genuine, permissioned client
          feedback before publishing, and delete the .placeholder-tag spans.
     --------------------------------------------------------------------- -->
-    <div class="grid grid--3 reveal" style="margin-top:48px">
-      <figure class="quote surface-dark">
+    <div class="testimonial reveal" data-carousel>
+      <div class="testimonial__portrait">Client photo</div>
+
+      <figure class="testimonial__slide" data-slide>
         <blockquote>"We sent them our invoice and didn't have to do anything else."</blockquote>
         <figcaption>
           Sample quote — restaurant operator
@@ -412,7 +524,7 @@
         </figcaption>
       </figure>
 
-      <figure class="quote surface-dark">
+      <figure class="testimonial__slide" data-slide hidden>
         <blockquote>"Three suppliers became one. The admin basically disappeared."</blockquote>
         <figcaption>
           Sample quote — warehouse manager
@@ -420,19 +532,29 @@
         </figcaption>
       </figure>
 
-      <figure class="quote surface-dark">
+      <figure class="testimonial__slide" data-slide hidden>
         <blockquote>"They showed us the numbers before asking us for anything."</blockquote>
         <figcaption>
           Sample quote — office manager
           <span class="placeholder-tag">Placeholder · replace before launch</span>
         </figcaption>
       </figure>
+
+      <div class="carousel-nav">
+        <button type="button" data-prev aria-label="Previous quote">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <button type="button" data-next aria-label="Next quote">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
     </div>
+
   </div>
 </section>
 
 <!-- ========================= OBJECTION REMOVAL ========================= -->
-<section class="band surface-dark">
+<section class="band surface-light">
   <div class="container">
     <div class="reveal" style="max-width:760px">
       <p class="section-title">The obvious questions.</p>
@@ -440,25 +562,25 @@
     </div>
 
     <div class="grid grid--4 reveal" style="margin-top:56px">
-      <article class="card card--tall surface-light">
+      <article class="card card--tall surface-dark">
         <p class="objection__q body">"What's this going to cost me?"</p>
         <p class="objection__a">£0</p>
         <p class="card__foot card__body">The audit is free. Always.</p>
       </article>
 
-      <article class="card card--tall surface-light">
+      <article class="card card--tall surface-dark">
         <p class="objection__q body">"Will I be pressured?"</p>
         <p class="objection__a">No.</p>
         <p class="card__foot card__body">No obligation. If you take the report and do nothing, that's a fine outcome.</p>
       </article>
 
-      <article class="card card--tall surface-light">
+      <article class="card card--tall surface-dark">
         <p class="objection__q body">"Do I have to call everyone?"</p>
         <p class="objection__a">No.</p>
         <p class="card__foot card__body">We handle the suppliers. You stay out of the phone calls.</p>
       </article>
 
-      <article class="card card--tall surface-light">
+      <article class="card card--tall surface-dark">
         <p class="objection__q body">"How do I know the saving is real?"</p>
         <p class="objection__a">We show you.</p>
         <p class="card__foot card__body">Line by line, against your own invoice. No vague percentages.</p>
@@ -468,29 +590,53 @@
 </section>
 
 <!-- ========================= THE RIPPLE DIFFERENCE ===================== -->
-<section class="band surface-light">
+<section class="band surface-dark">
   <div class="container">
     <div class="reveal" style="max-width:760px">
       <p class="section-title">The Ripple difference.</p>
     </div>
 
-    <div class="grid grid--4 reveal" style="margin-top:48px">
-      <article class="card surface-dark">
-        <h3 class="subheading card__title">Paperless by design</h3>
-        <p class="card__body">Less paperwork. Less admin. More visibility.</p>
+    <div class="bento reveal" style="margin-top:48px">
+      <article class="bento__wide surface-light">
+        <h3 class="subheading card__title">Every tonne tracked</h3>
+        <p class="card__body">Know what happens to your waste after it leaves your premises — by stream, by tonne, by destination.</p>
       </article>
-      <article class="card surface-dark">
+
+      <article class="surface-light">
+        <p class="bento__figure">0</p>
+        <div>
+          <h3 class="subheading card__title">Paper forms</h3>
+          <p class="card__body">Paperless by design. Less admin, more visibility.</p>
+        </div>
+      </article>
+
+      <article class="surface-light">
+        <p class="bento__figure">1</p>
+        <div>
+          <h3 class="subheading card__title">Tree per contract</h3>
+          <p class="card__body">Every new contract helps fund tree planting.</p>
+        </div>
+      </article>
+
+      <article class="bento__wide surface-light">
         <h3 class="subheading card__title">Local-first</h3>
         <p class="card__body">We look for suitable local solutions before sending waste halfway across the country.</p>
       </article>
-      <article class="card surface-dark">
-        <h3 class="subheading card__title">One tree per contract</h3>
-        <p class="card__body">Every new contract helps fund tree planting.</p>
+
+      <article class="bento__wide surface-light">
+        <h3 class="subheading card__title">On your side of the table</h3>
+        <p class="card__body">We work independently from the operators we source, so we're not pushing whatever service happens to be available.</p>
       </article>
-      <article class="card surface-dark">
-        <h3 class="subheading card__title">Every tonne tracked</h3>
-        <p class="card__body">Know what happens to your waste after it leaves your premises.</p>
-      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================= STATEMENT ============================= -->
+<section class="band surface-light">
+  <div class="container statement reveal">
+    <h2 class="heading-lg">Give us the numbers. We'll give you the answer.</h2>
+    <div class="btn-row btn-row--center">
+      <a class="btn btn--primary" href="#audit">Check my waste bill</a>
     </div>
   </div>
 </section>

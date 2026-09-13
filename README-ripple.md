@@ -32,6 +32,26 @@ mechanism: 28px radii, pill buttons, no shadows, no borders between sections.
 To retone a section, swap its `surface-light` / `surface-dark` class and flip
 its cards to match.
 
+## Page structure
+
+The homepage runs as one funnel, bands alternating tone the whole way down:
+
+    hero (split)  ·  trust  ·  positioning  ·  process
+    feature 01 rates  ·  02 collections  ·  03 diversion  ·  04 compliance
+    independence  ·  industries  ·  Waste Wins  ·  testimonial
+    objections  ·  the Ripple difference  ·  statement  ·  pricing
+    FAQ  ·  audit form  ·  insights  ·  footer
+
+The four numbered feature bands are the page's backbone: one claim and one
+visual that demonstrates it, alternating sides via `.feature--flip`. Each
+visual is built from live markup rather than an image — a sourced-quote
+comparison, a weekly collection grid, a diversion bar, a compliance
+checklist — so they retone with their band and stay sharp at any size.
+The figures in them are illustrative; swap them for real ones.
+
+Bands must keep alternating. If you add or remove one, flip everything below
+it, and flip the cards inside each affected band to the opposite tone.
+
 ## The logo
 
 The lockup is live text plus an inline SVG sprig (`.brand` in `index.html`,

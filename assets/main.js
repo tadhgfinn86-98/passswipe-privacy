@@ -110,6 +110,53 @@
     });
   }
 
+  /* --- Testimonial carousel --------------------------------------------- */
+
+  var carousel = document.querySelector('[data-carousel]');
+
+  if (carousel) {
+    var slides = Array.prototype.slice.call(carousel.querySelectorAll('[data-slide]'));
+    var index = 0;
+
+    var show = function (next) {
+      index = (next + slides.length) % slides.length;
+      slides.forEach(function (slide, i) { slide.hidden = i !== index; });
+    };
+
+    var prev = carousel.querySelector('[data-prev]');
+    var nextBtn = carousel.querySelector('[data-next]');
+    if (prev) prev.addEventListener('click', function () { show(index - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { show(index + 1); });
+
+    if (slides.length < 2 && prev && nextBtn) {
+      prev.hidden = true;
+      nextBtn.hidden = true;
+    }
+  }
+
+  /* --- Hero quick-start -------------------------------------------------- */
+  /* Carries the address down to the full audit form rather than asking for
+     it twice. */
+
+  var quick = document.querySelector('[data-quick-form]');
+
+  if (quick) {
+    var handoff = function (event) {
+      event.preventDefault();
+      var typed = quick.querySelector('input[type="email"]');
+      var target = document.querySelector('#audit');
+      var full = document.querySelector('[data-audit-form] input[type="email"]');
+
+      if (full && typed && typed.value) full.value = typed.value;
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (full) window.setTimeout(function () { full.focus({ preventScroll: true }); }, 500);
+    };
+
+    quick.addEventListener('submit', handoff);
+    var quickCta = quick.querySelector('.btn');
+    if (quickCta) quickCta.addEventListener('click', handoff);
+  }
+
   /* --- Audit form -------------------------------------------------------- */
   /* No endpoint is wired up yet. Point `action` at your form handler
      (Tally, Formspree, a Netlify form, your own API) and delete this block. */
