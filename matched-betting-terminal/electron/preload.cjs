@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('terminal', {
   save: (data) => ipcRenderer.invoke('data:save', data),
   exportData: (data) => ipcRenderer.invoke('data:export', data),
   importData: () => ipcRenderer.invoke('data:import'),
+  exportCsv: (csv, name) => ipcRenderer.invoke('data:exportCsv', csv, name),
+  importCsv: () => ipcRenderer.invoke('data:importCsv'),
   revealDataFile: () => ipcRenderer.invoke('data:reveal'),
   appInfo: () => ipcRenderer.invoke('app:info'),
 });

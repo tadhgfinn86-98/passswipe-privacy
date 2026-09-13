@@ -17,7 +17,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 680,
     show: false,
-    backgroundColor: '#05060a',
+    backgroundColor: '#080809',
     title: 'Matched Betting Terminal',
     icon: path.join(__dirname, '..', 'build', 'icon.ico'),
     autoHideMenuBar: true,
@@ -84,9 +84,35 @@ ipcMain.handle('data:import', async () => {
   if (canceled || filePaths.length === 0) return { ok: false, canceled: true };
   try {
     const parsed = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
-    return { ok: true, data: store.normalise(parsed), filePath: filePaths[0] };
+    // The renderer runs full normalisation/migration on whatever comes back.
+    return { ok: true, data: parsed, filePath: filePaths[0] };
   } catch (err) {
     return { ok: false, error: `Not a valid backup file: ${err.message}` };
+  }
+});
+
+ipcMain.handle('data:exportCsv', async (_event, csv, name) => {
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export CSV',
+    defaultPath: name,
+    filters: [{ name: 'CSV', extensions: ['csv'] }],
+  });
+  if (canceled || !filePath) return { ok: false, canceled: true };
+  fs.writeFileSync(filePath, csv, 'utf8');
+  return { ok: true, filePath };
+});
+
+ipcMain.handle('data:importCsv', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Import CSV',
+    properties: ['openFile'],
+    filters: [{ name: 'CSV', extensions: ['csv'] }],
+  });
+  if (canceled || filePaths.length === 0) return { ok: false, canceled: true };
+  try {
+    return { ok: true, text: fs.readFileSync(filePaths[0], 'utf8') };
+  } catch (err) {
+    return { ok: false, error: err.message };
   }
 });
 

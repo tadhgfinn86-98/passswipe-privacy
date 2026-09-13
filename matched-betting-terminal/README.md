@@ -1,10 +1,11 @@
 # Matched Betting Terminal
 
-A Bloomberg-terminal-style desktop app for matched betting: calculator, offer
-tracker, bet log and bankroll chart. Everything is stored locally on your own
-PC — no cloud, no account, no internet connection needed once installed.
+A dark trading-terminal desktop app for matched betting: profit calendar, bet
+log with both legs, offer pipeline, five calculators, account and gubbing
+tracker, and reporting. Everything is stored locally on your own PC — no cloud,
+no account, no internet connection needed once installed.
 
-![Panels: calculator, offer tracker, bankroll/bet log, settings](docs/screenshot.png)
+![Dashboard: profit calendar, cumulative chart and breakdowns](docs/screenshot.png)
 
 ---
 
@@ -124,7 +125,7 @@ MatchedBettingTerminal-Setup-1.0.0.exe
 
 **What you get:** the installer automatically creates
 
-- a **desktop shortcut** with the amber "MB" terminal icon, and
+- a **desktop shortcut** with the "MB" terminal icon, and
 - a **Start Menu entry** under "Matched Betting Terminal".
 
 ---
@@ -153,53 +154,71 @@ Your saved data is deliberately left behind in case you reinstall.
 
 ## What the terminal does
 
-**Calculator (F1)** — two modes:
+Six tabs down the left rail. Press `F1`–`F6` to switch, or `?` for the full key map.
 
-- **Qualifying bet**: back stake, back odds, lay odds, commission → optimal lay
-  stake, liability, and the profit/loss on each outcome. A small loss is
-  expected and is shown as `QUALIFYING LOSS (LOCKED)`.
-- **Free bet (SNR)**: free bet amount, back odds, lay odds, commission →
-  optimal lay stake, liability, and the guaranteed profit whichever way the
-  event lands, plus your free-bet retention percentage.
+**Dashboard (F1)** — profit calendar with colour-coded days, cumulative profit
+chart, and headline figures: profit to date, this month, bankroll across all
+accounts, money tied up in open bets, total withdrawn, and open offers. Below
+that, profit split by bookmaker and by offer type, plus anything due in the next
+seven days.
 
-Results update as you type, inputs are validated, and **liability** is shown in
-its own highlighted row. If the liability is more than your current bankroll a
-red warning appears directly beneath it.
+**Bet log (F2)** — every bet as a back leg and a lay leg. Bookmaker, stake and
+odds on one side; exchange, lay stake, lay odds and commission on the other.
+The form shows the liability and the locked figure live as you type. Each row
+carries an offer type (qualifying, free bet SNR/SR, risk-free, reload, refund,
+casino) and a status (pending, back won, lay won, cashed out, void). Pending
+rows show their expected profit; settled rows show what actually landed. Search
+and filter by bookmaker, type or status.
 
-Formulas used (commission as a decimal, so 2% = 0.02):
+**Offers (F3)** — the to-do pipeline: bookmaker, requirement, deadline, expected
+profit, status and notes. Set a repeat (weekly, fortnightly, monthly) on reload
+offers and the next due date rolls forward automatically. Overdue turns red,
+due-within-a-week turns blue.
 
-```
-Qualifying:  layStake = (backOdds × backStake) / (layOdds − commission)
-Free bet:    layStake = ((backOdds − 1) × backStake) / (layOdds − commission)
-liability    = layStake × (layOdds − 1)
-```
+**Calculators (F4)** — four tools, all offline:
 
-**Offer tracker (F2)** — bookmaker, description, type, requirement, deadline,
-expected profit, status and notes. Add, edit and delete rows; click any column
-header to sort; click a status badge to advance it (amber `TO DO` → cyan
-`IN PROGRESS` → green `DONE`). Deadlines inside 7 days turn amber, overdue ones
-turn red.
+- *Lay stake* — qualifying, free bet SNR and free bet SR, with equal-profit,
+  underlay or overlay laying and a per-exchange commission preset.
+- *Dutching* — split a stake across any number of outcomes for the same return
+  whichever wins, with the book margin.
+- *Each-way* — separate win and place lay stakes from the place terms, with the
+  outcome if the horse wins, places only, or is unplaced.
+- *Casino wagering* — turnover, house edge and expected value for a bonus, so
+  you can see when an offer is not worth doing.
 
-**Bankroll / bet log (F3)** — log each completed bet with date, bookmaker,
-event, stake, profit/loss and the offer it belongs to. The running bankroll and
-profit update automatically and are plotted on a chart against your starting
-bankroll.
+Any lay calculation can be pushed straight into the bet log with **Send to bet
+log**.
 
-**Position / settings / data (F4)** — starting bankroll (defaults to £50),
-currency symbol, commission preset, plus **Export JSON** / **Import JSON**
-backup buttons and a **Show file** button that opens the save file in Explorer.
+**Accounts (F5)** — balance per bookmaker and exchange, total bankroll, and how
+much is currently stuck in open bets at each one. Each account has a status —
+active, limited, gubbed or closed — so you can see at a glance where you can
+still bet. Withdrawals are logged separately as money banked for good.
+
+**Reports (F6)** — filter by date range, bookmaker and offer type, then read off
+profit per bet, per offer and per hour (from the minutes you log against each
+bet), total staked and return on stakes. Export the filtered bets to CSV, import
+bets from CSV, and take a full JSON backup.
+
+### Odds are entered by hand
+
+This terminal tracks what you type; it does not pull live odds. Automatic
+odds-matching needs a paid data feed and a permanent internet connection, which
+would undo the offline, no-account design. The bet model stores back and lay
+odds in a shape a feed could fill in later without changing the interface.
+
+### Multiple profiles
+
+The switcher in the top-right keeps completely separate sets of accounts,
+offers, bets and withdrawals in one file — useful if you run more than one
+person's accounts. A JSON backup contains every profile.
 
 ### Keyboard shortcuts
 
-Press `?` inside the app for the full key map.
-
 | Key | Action |
 |-----|--------|
-| `F1` … `F4` | Jump to calculator / offers / bet log / settings |
-| `Ctrl + M` | Swap between qualifying and free bet mode |
-| `Ctrl + O` | Add a new offer |
+| `F1` … `F6` | Dashboard, bets, offers, calculators, accounts, reports |
 | `Ctrl + E` / `Ctrl + I` | Export / import a JSON backup |
-| `Esc` | Cancel the form you are editing |
+| `Esc` | Cancel the current form |
 | `?` | Show the key map |
 
 ---

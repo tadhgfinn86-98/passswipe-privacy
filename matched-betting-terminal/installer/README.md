@@ -8,7 +8,7 @@ Node.js needed.
 SHA-256:
 
 ```
-2046ccfca51871d096ecf9a2889e50a8d12b95d8ab9d74af17253b227fb38067
+9a41c12827f3f3be04f744f2dc84098b7ccc69015d83b200b5bc6540f435de9b
 ```
 
 ## How to install

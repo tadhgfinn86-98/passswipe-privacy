@@ -1,24 +1,28 @@
 import React from 'react';
 
-export default function Footer({ saveState, onHelp }) {
-  const label =
-    saveState === 'saving' ? 'SAVING…' : saveState === 'error' ? 'SAVE FAILED' : 'SAVED LOCALLY';
-  const tone = saveState === 'error' ? 'red' : saveState === 'saving' ? 'amber' : 'green';
+export default function Footer({ saveState, version, onHelp }) {
+  const label = saveState === 'saving' ? 'Saving…' : saveState === 'error' ? 'Save failed' : 'Saved locally';
+  const tone = saveState === 'error' ? 'error' : saveState === 'saving' ? 'saving' : '';
 
   return (
     <footer className="footer">
-      <span className="disclaimer">
-        For managing legitimate matched betting offers only. 18+. Gamble responsibly — BeGambleAware.org
-      </span>
-      <span className="panel-tools">
-        <button className="btn tiny" type="button" onClick={onHelp} title="Keyboard shortcuts (?)">
-          KEY MAP ?
+      <div className="footer-links">
+        <span className="nowrap">For managing legitimate matched betting offers only. 18+.</span>
+        <span className="footer-sep" />
+        <span className="nowrap">Gamble responsibly — BeGambleAware.org</span>
+      </div>
+      <div className="footer-right">
+        <button type="button" className="link footer-btn" onClick={onHelp}>
+          Shortcuts
         </button>
-        <span className="rule">│</span>
-        <span className={tone}>
-          <span className="blink">●</span> {label}
+        <span className="footer-sep" />
+        <span className="mono">v{version}</span>
+        <span className="footer-sep" />
+        <span className="nowrap">
+          <span className={`status-dot ${tone}`} />
+          {label}
         </span>
-      </span>
+      </div>
     </footer>
   );
 }

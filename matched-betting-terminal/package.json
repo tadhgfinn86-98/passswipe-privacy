@@ -17,7 +17,8 @@
     "dist": "npm run icon && vite build && electron-builder --win --x64"
   },
   "devDependencies": {
-    "@fontsource/ibm-plex-mono": "^5.0.13",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
     "@vitejs/plugin-react": "^4.3.4",
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8",

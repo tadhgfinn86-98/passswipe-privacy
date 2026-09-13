@@ -87,37 +87,36 @@ function drawGlyph(c, ch, x, y, scale, colour) {
 
 /* ------------------------------------------------------------- artwork ---- */
 
-const NEAR_BLACK = [7, 8, 12];
-const AMBER = [255, 176, 0];
-const AMBER_DIM = [120, 78, 0];
-const GREEN = [51, 255, 102];
+// Matches the app's surface scale and Ice Signal accent.
+const VOID = [8, 8, 9];
+const CHARCOAL = [27, 29, 31];
+const ICE = [131, 195, 255];
+const ICE_DIM = [52, 78, 102];
+const PAPER = [255, 255, 255];
 
 function drawMaster() {
   const c = createCanvas(MASTER);
   const u = MASTER / 64; // layout unit
 
-  // Panel background and amber frame.
-  fillRect(c, 0, 0, MASTER, MASTER, NEAR_BLACK);
-  strokeRect(c, 3 * u, 3 * u, MASTER - 6 * u, MASTER - 6 * u, 1.6 * u, AMBER);
+  // Void ground with an inset Charcoal card and a hairline Ice Signal ring —
+  // the same card treatment the UI uses.
+  fillRect(c, 0, 0, MASTER, MASTER, VOID);
+  fillRect(c, 3 * u, 3 * u, MASTER - 6 * u, MASTER - 6 * u, CHARCOAL);
+  strokeRect(c, 3 * u, 3 * u, MASTER - 6 * u, MASTER - 6 * u, 1.1 * u, ICE);
 
-  // Faint scanline texture, the way a phosphor terminal reads.
-  for (let y = 4 * u; y < MASTER - 4 * u; y += 4) {
-    fillRect(c, 4.6 * u, y, MASTER - 9.2 * u, 1, AMBER_DIM, 0.06);
-  }
-
-  // "MB" lettering.
+  // "MB" lettering in paper white.
   const scale = 3.2 * u;
   const gap = 1.1 * scale;
   const totalW = glyphWidth('M', scale) + gap + glyphWidth('B', scale);
   const gx = (MASTER - totalW) / 2;
   const gy = 12.5 * u;
-  drawGlyph(c, 'M', gx, gy, scale, AMBER);
-  drawGlyph(c, 'B', gx + glyphWidth('M', scale) + gap, gy, scale, AMBER);
+  drawGlyph(c, 'M', gx, gy, scale, PAPER);
+  drawGlyph(c, 'B', gx + glyphWidth('M', scale) + gap, gy, scale, PAPER);
 
-  // Divider under the lettering.
-  fillRect(c, 9 * u, 40 * u, MASTER - 18 * u, 0.55 * u, AMBER_DIM);
+  // Hairline divider under the lettering.
+  fillRect(c, 9 * u, 40 * u, MASTER - 18 * u, 0.5 * u, ICE_DIM);
 
-  // Rising equity curve.
+  // Rising equity curve in the accent blue.
   const pts = [
     [10, 53],
     [19, 50],
@@ -127,11 +126,9 @@ function drawMaster() {
     [54, 41],
   ].map(([x, y]) => [x * u, y * u]);
   for (let i = 0; i < pts.length - 1; i++) {
-    drawLine(c, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], 1.9 * u, GREEN);
+    drawLine(c, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1], 1.8 * u, ICE);
   }
 
-  // Cursor block, bottom right.
-  fillRect(c, 51.5 * u, 54.5 * u, 3.2 * u, 4.2 * u, AMBER);
   return c;
 }
 

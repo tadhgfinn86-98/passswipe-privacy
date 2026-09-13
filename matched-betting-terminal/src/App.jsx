@@ -1,31 +1,43 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import TickerBar from './components/TickerBar.jsx';
-import Calculator from './components/Calculator.jsx';
-import OfferTracker from './components/OfferTracker.jsx';
-import BetLog from './components/BetLog.jsx';
-import DataPanel from './components/DataPanel.jsx';
+import TopNav from './components/TopNav.jsx';
+import IconRail, { TABS } from './components/IconRail.jsx';
 import HelpOverlay from './components/HelpOverlay.jsx';
 import Footer from './components/Footer.jsx';
 
-import { DEFAULT_DATA, appInfo, exportData, importData, isDesktop, loadData, revealDataFile, saveData } from './lib/storage.js';
-import { daysUntil } from './lib/format.js';
+import Dashboard from './tabs/Dashboard.jsx';
+import Bets from './tabs/Bets.jsx';
+import Offers from './tabs/Offers.jsx';
+import Calculators from './tabs/Calculators.jsx';
+import Accounts from './tabs/Accounts.jsx';
+import Reports from './tabs/Reports.jsx';
+
+import {
+  appInfo,
+  defaultData,
+  exportCsv,
+  exportData,
+  importCsv,
+  importData,
+  isDesktop,
+  loadData,
+  revealDataFile,
+  saveData,
+} from './lib/storage.js';
+import { accountsTotal, emptyProfile, realisedProfit, tiedUp } from './lib/model.js';
 
 const SAVE_DEBOUNCE_MS = 400;
 
 export default function App() {
-  const [data, setData] = useState(DEFAULT_DATA);
+  const [data, setData] = useState(() => defaultData());
   const [ready, setReady] = useState(false);
   const [saveState, setSaveState] = useState('saved');
   const [toast, setToast] = useState(null);
   const [showHelp, setShowHelp] = useState(false);
-  const [logPrefill, setLogPrefill] = useState(null);
+  const [tab, setTab] = useState('dashboard');
+  const [betPrefill, setBetPrefill] = useState(null);
   const [info, setInfo] = useState({ version: '1.0.0', dataPath: '' });
 
-  const calcRef = useRef(null);
-  const offersRef = useRef(null);
-  const betsRef = useRef(null);
-  const dataRef = useRef(null);
   const saveTimer = useRef(null);
 
   /* ------------------------------------------------------------- loading -- */
@@ -35,7 +47,7 @@ export default function App() {
     (async () => {
       const [loaded, meta] = await Promise.all([loadData(), appInfo()]);
       if (cancelled) return;
-      setData({ ...DEFAULT_DATA, ...loaded, settings: { ...DEFAULT_DATA.settings, ...loaded.settings } });
+      setData(loaded);
       setInfo(meta);
       setReady(true);
     })();
@@ -49,7 +61,7 @@ export default function App() {
     setTimeout(() => setToast(null), 3200);
   }, []);
 
-  /* -------------------------------------------------------- auto-saving --- */
+  /* --------------------------------------------------------- auto-saving -- */
 
   useEffect(() => {
     // Never write before the first load has landed, or we would overwrite the
@@ -69,40 +81,62 @@ export default function App() {
     return () => clearTimeout(saveTimer.current);
   }, [data, ready, flash]);
 
-  /* --------------------------------------------------------- derived data -- */
+  /* -------------------------------------------------------------- profile -- */
 
-  const { settings, offers, bets } = data;
-  const currency = settings.currency || '£';
+  const profile = useMemo(
+    () => data.profiles.find((p) => p.id === data.activeProfileId) || data.profiles[0],
+    [data],
+  );
+  const currency = profile.settings.currency || '£';
 
-  const stats = useMemo(() => {
-    const totalProfit = bets.reduce((sum, b) => sum + (Number(b.profit) || 0), 0);
-    const open = offers.filter((o) => o.status !== 'Done');
-    return {
-      totalProfit,
-      bankroll: (Number(settings.startingBankroll) || 0) + totalProfit,
-      openOffers: open.length,
-      pipeline: open.reduce((sum, o) => sum + (Number(o.expectedProfit) || 0), 0),
-      dueSoon: open.filter((o) => {
-        const d = daysUntil(o.deadline);
-        return d !== null && d <= 7;
-      }).length,
-    };
-  }, [bets, offers, settings.startingBankroll]);
-
-  /* ------------------------------------------------------------- mutators -- */
-
-  const setOffers = useCallback((next) => setData((d) => ({ ...d, offers: next })), []);
-  const setBets = useCallback((next) => setData((d) => ({ ...d, bets: next })), []);
-  const setSettings = useCallback((next) => setData((d) => ({ ...d, settings: next })), []);
-
-  const handleCommissionChange = useCallback(
-    (commission, exchange) => setData((d) => ({ ...d, settings: { ...d.settings, commission, exchange } })),
+  /** Every tab mutates the active profile through this one path. */
+  const patchProfile = useCallback(
+    (patch) =>
+      setData((d) => ({
+        ...d,
+        profiles: d.profiles.map((p) => (p.id === d.activeProfileId ? { ...p, ...patch } : p)),
+      })),
     [],
   );
 
+  const setBets = useCallback((bets) => patchProfile({ bets }), [patchProfile]);
+  const setOffers = useCallback((offers) => patchProfile({ offers }), [patchProfile]);
+  const setAccounts = useCallback((accounts) => patchProfile({ accounts }), [patchProfile]);
+  const setWithdrawals = useCallback((withdrawals) => patchProfile({ withdrawals }), [patchProfile]);
+  const setSettings = useCallback((settings) => patchProfile({ settings }), [patchProfile]);
+
+  const handleCommissionChange = useCallback(
+    (commission, exchange) =>
+      patchProfile({ settings: { ...profile.settings, commission, exchange } }),
+    [patchProfile, profile.settings],
+  );
+
+  const addProfile = useCallback(() => {
+    const name = window.prompt('Name for the new profile?');
+    if (!name?.trim()) return;
+    const next = emptyProfile(name.trim());
+    setData((d) => ({ ...d, profiles: [...d.profiles, next], activeProfileId: next.id }));
+    flash(`Profile "${next.name}" created`);
+  }, [flash]);
+
+  /* --------------------------------------------------------------- totals -- */
+
+  const totals = useMemo(() => {
+    const profit = realisedProfit(profile.bets);
+    const accountsSum = accountsTotal(profile.accounts);
+    return {
+      profit,
+      tied: tiedUp(profile.bets),
+      bankroll: accountsSum || (Number(profile.settings.startingBankroll) || 0) + profit,
+      openOffers: profile.offers.filter((o) => o.status !== 'Done').length,
+    };
+  }, [profile]);
+
+  /* ------------------------------------------------------------ transfers -- */
+
   const handleExport = useCallback(async () => {
     const res = await exportData(data);
-    if (res?.ok) flash('BACKUP EXPORTED');
+    if (res?.ok) flash('Backup exported');
     else if (res && !res.canceled) flash(res.error || 'Export failed', true);
   }, [data, flash]);
 
@@ -112,32 +146,29 @@ export default function App() {
       if (res && !res.canceled) flash(res.error || 'Import failed', true);
       return;
     }
-    const imported = res.data;
+    const incoming = res.data;
+    const bets = incoming.profiles.reduce((n, p) => n + p.bets.length, 0);
     const confirmed = window.confirm(
-      `Import will replace everything currently in the terminal.\n\n` +
-        `Incoming: ${imported.offers?.length ?? 0} offers, ${imported.bets?.length ?? 0} bets.\n` +
-        `Current:  ${offers.length} offers, ${bets.length} bets.\n\nContinue?`,
+      `Import replaces everything currently in the terminal.\n\n` +
+        `Incoming: ${incoming.profiles.length} profile(s), ${bets} bets.\n\nContinue?`,
     );
     if (!confirmed) return;
-    setData({
-      ...DEFAULT_DATA,
-      ...imported,
-      settings: { ...DEFAULT_DATA.settings, ...(imported.settings || {}) },
-    });
-    flash('BACKUP IMPORTED');
-  }, [bets.length, offers.length, flash]);
+    setData(incoming);
+    flash('Backup imported');
+  }, [flash]);
+
+  const handleExportCsv = useCallback(
+    async (csv, name) => {
+      const res = await exportCsv(csv, name);
+      if (res?.ok) flash('CSV exported');
+      else if (res && !res.canceled) flash(res.error || 'CSV export failed', true);
+    },
+    [flash],
+  );
 
   /* ------------------------------------------------------------ shortcuts -- */
 
   useEffect(() => {
-    function focusPanel(ref) {
-      const panel = ref.current;
-      if (!panel) return;
-      panel.scrollIntoView({ block: 'nearest' });
-      const firstField = panel.querySelector('input, select, textarea, button');
-      (firstField || panel).focus();
-    }
-
     function onKeyDown(event) {
       const target = event.target;
       const typing = /^(INPUT|SELECT|TEXTAREA)$/.test(target?.tagName || '');
@@ -155,25 +186,11 @@ export default function App() {
         return;
       }
 
-      switch (event.key) {
-        case 'F1':
-          event.preventDefault();
-          focusPanel(calcRef);
-          return;
-        case 'F2':
-          event.preventDefault();
-          focusPanel(offersRef);
-          return;
-        case 'F3':
-          event.preventDefault();
-          focusPanel(betsRef);
-          return;
-        case 'F4':
-          event.preventDefault();
-          focusPanel(dataRef);
-          return;
-        default:
-          break;
+      const byKey = TABS.find((t) => t.hotkey === event.key);
+      if (byKey) {
+        event.preventDefault();
+        setTab(byKey.id);
+        return;
       }
 
       if (event.ctrlKey && !event.shiftKey && !event.altKey) {
@@ -184,12 +201,6 @@ export default function App() {
         } else if (key === 'i') {
           event.preventDefault();
           handleImport();
-        } else if (key === 'o') {
-          event.preventDefault();
-          offersRef.current?.querySelector('button.primary')?.click();
-        } else if (key === 'm') {
-          event.preventDefault();
-          calcRef.current?.querySelector('.segmented button:not([aria-pressed="true"])')?.click();
         }
       }
     }
@@ -202,66 +213,87 @@ export default function App() {
 
   if (!ready) {
     return (
-      <div className="empty-state" style={{ paddingTop: 80 }}>
-        <span className="amber">LOADING TERMINAL</span>
-        <span className="blink amber"> ▊</span>
+      <div className="empty-state" style={{ paddingTop: 120 }}>
+        <span className="accent">Loading terminal…</span>
       </div>
     );
   }
 
   return (
     <div className="app">
-      <TickerBar
-        bankroll={stats.bankroll}
-        totalProfit={stats.totalProfit}
-        openOffers={stats.openOffers}
-        dueSoon={stats.dueSoon}
-        betCount={bets.length}
+      <TopNav
+        bankroll={totals.bankroll}
+        profit={totals.profit}
+        tied={totals.tied}
+        openOffers={totals.openOffers}
         currency={currency}
+        profiles={data.profiles}
+        activeProfileId={data.activeProfileId}
+        onSwitchProfile={(id) => setData((d) => ({ ...d, activeProfileId: id }))}
+        onAddProfile={addProfile}
       />
 
-      <div className="workspace">
-        <Calculator
-          ref={calcRef}
-          settings={settings}
-          currency={currency}
-          availableFloat={stats.bankroll}
-          onCommissionChange={handleCommissionChange}
-          onSendToLog={(payload) => {
-            setLogPrefill(payload);
-            flash('SENT TO BET LOG — CHECK THE FORM');
-          }}
-        />
+      <div className="shell">
+        <IconRail active={tab} onNavigate={setTab} onHelp={() => setShowHelp(true)} />
 
-        <OfferTracker ref={offersRef} offers={offers} onChange={setOffers} currency={currency} />
+        <main className="center" key={tab}>
+          {tab === 'dashboard' ? <Dashboard profile={profile} currency={currency} /> : null}
 
-        <DataPanel
-          ref={dataRef}
-          settings={settings}
-          onSettingsChange={setSettings}
-          onExport={handleExport}
-          onImport={handleImport}
-          onReveal={revealDataFile}
-          stats={stats}
-          dataPath={info.dataPath}
-          version={info.version}
-          currency={currency}
-          isDesktop={isDesktop}
-        />
+          {tab === 'bets' ? (
+            <Bets
+              profile={profile}
+              currency={currency}
+              onChange={setBets}
+              prefill={betPrefill}
+              onPrefillConsumed={() => setBetPrefill(null)}
+            />
+          ) : null}
 
-        <BetLog
-          ref={betsRef}
-          bets={bets}
-          offers={offers}
-          onChange={setBets}
-          startingBankroll={Number(settings.startingBankroll) || 0}
-          currency={currency}
-          prefill={logPrefill}
-          onPrefillConsumed={() => setLogPrefill(null)}
-        />
+          {tab === 'offers' ? <Offers profile={profile} currency={currency} onChange={setOffers} /> : null}
+
+          {tab === 'calculators' ? (
+            <Calculators
+              profile={profile}
+              currency={currency}
+              availableFloat={totals.bankroll}
+              onCommissionChange={handleCommissionChange}
+              onSendToLog={(payload) => {
+                setBetPrefill(payload);
+                setTab('bets');
+                flash('Sent to the bet log — finish the row and save');
+              }}
+            />
+          ) : null}
+
+          {tab === 'accounts' ? (
+            <Accounts
+              profile={profile}
+              currency={currency}
+              onAccountsChange={setAccounts}
+              onWithdrawalsChange={setWithdrawals}
+            />
+          ) : null}
+
+          {tab === 'reports' ? (
+            <Reports
+              profile={profile}
+              currency={currency}
+              settings={profile.settings}
+              onSettingsChange={setSettings}
+              onBetsChange={setBets}
+              onExport={handleExport}
+              onImport={handleImport}
+              onReveal={revealDataFile}
+              onExportCsv={handleExportCsv}
+              onImportCsv={importCsv}
+              isDesktop={isDesktop}
+              dataPath={info.dataPath}
+            />
+          ) : null}
+        </main>
       </div>
 
-      <Footer saveState={saveState} onHelp={() => setShowHelp(true)} />
+      <Footer saveState={saveState} version={info.version} onHelp={() => setShowHelp(true)} />
 
       {showHelp ? <HelpOverlay onClose={() => setShowHelp(false)} /> : null}
       {toast ? <div className={`toast${toast.isError ? ' error' : ''}`}>{toast.message}</div> : null}
