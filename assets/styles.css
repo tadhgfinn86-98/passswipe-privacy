@@ -153,16 +153,16 @@ a:hover { text-decoration: underline; }
 
 .display {
   font-size: clamp(44px, 8.4vw, 96px);
-  line-height: 1.04;
-  letter-spacing: -0.015em;
-  font-weight: var(--font-weight-semibold);
+  line-height: 1.042;          /* 100/96 */
+  letter-spacing: -0.015em;    /* -1.44px at 96px */
+  font-weight: var(--font-weight-bold);
 }
 
 .heading-lg {
   font-size: clamp(38px, 6.6vw, 80px);
-  line-height: 1.05;
-  letter-spacing: -0.015em;
-  font-weight: var(--font-weight-semibold);
+  line-height: 1.05;           /* 84/80 */
+  letter-spacing: -0.015em;    /* -1.2px at 80px */
+  font-weight: var(--font-weight-bold);
 }
 
 .heading {
@@ -181,8 +181,8 @@ a:hover { text-decoration: underline; }
 
 .subheading {
   font-size: clamp(24px, 2.6vw, 32px);
-  line-height: 1.14;
-  letter-spacing: 0.004em;
+  line-height: 1.125;          /* 36/32 */
+  letter-spacing: 0.004em;     /* 0.128px at 32px */
   font-weight: var(--font-weight-semibold);
 }
 
@@ -196,15 +196,15 @@ a:hover { text-decoration: underline; }
 
 .body-lg {
   font-size: clamp(21px, 2vw, 28px);
-  line-height: 1.25;
-  letter-spacing: 0.004em;
+  line-height: 1.143;          /* 32/28 */
+  letter-spacing: 0.007em;     /* 0.196px at 28px */
   font-weight: var(--font-weight-regular);
 }
 
 .body-21 {
   font-size: clamp(19px, 1.6vw, 21px);
-  line-height: 1.38;
-  letter-spacing: 0.005em;
+  line-height: 1.381;          /* 29/21 */
+  letter-spacing: 0.011em;     /* 0.231px at 21px */
 }
 
 .body { font-size: 17px; line-height: 1.47; letter-spacing: -0.022em; }
@@ -223,7 +223,7 @@ a:hover { text-decoration: underline; }
   color: var(--color-mid-gray);
   margin: 0 0 var(--spacing-12);
 }
-.eyebrow--new { color: var(--color-ember); }
+.eyebrow--new { color: var(--color-primary-ink); font-weight: var(--font-weight-medium); }
 
 .label {
   font-size: 12px;
@@ -255,7 +255,7 @@ a:hover { text-decoration: underline; }
   font-weight: var(--font-weight-regular);
   letter-spacing: -0.022em;
   line-height: 1.2;
-  padding: 11px var(--spacing-24);
+  padding: 11px var(--spacing-16);
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
   cursor: pointer;
@@ -278,8 +278,8 @@ a:hover { text-decoration: underline; }
 .btn--paper { background: var(--color-paper); color: var(--color-primary-ink); }
 .btn--paper:hover { background: var(--color-cool-wash); }
 
-.btn--lg { font-size: 19px; padding: 14px var(--spacing-32); }
-.btn--sm { font-size: 14px; padding: 8px var(--spacing-16); border-radius: 999px; }
+.btn--sm { font-size: 14px; padding: 8px var(--spacing-12); border-radius: 999px; }
+.btn--block { width: 100%; padding-block: var(--spacing-16); }
 
 .btn-row {
   display: flex;
@@ -349,7 +349,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-20);
-  min-height: 52px;
+  height: 44px;
 }
 
 .nav__brand {
@@ -366,21 +366,28 @@ a:hover { text-decoration: underline; }
 
 .nav__mark { width: 20px; height: 20px; flex: none; }
 
+/* Stretch the nav wrapper to the full 44px bar so the links inherit it as
+   their hit area rather than sitting at the height of 12px type. */
+.nav__inner > nav { align-self: stretch; display: flex; }
+
 .nav__links {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-28);
+  align-items: stretch;
+  gap: var(--spacing-8);
   list-style: none;
   margin: 0;
   padding: 0;
 }
+.nav__links li { display: flex; }
+
 .nav__links a {
-  display: inline-block;
+  display: flex;
+  align-items: center;
   font-size: 12px;
   color: var(--color-primary-ink);
   letter-spacing: -0.01em;
-  /* 12px type would leave a 14px-tall hit area; pad it out to ~44px. */
-  padding-block: 15px;
+  /* Fill the 44px bar so the hit area is the bar, not the 12px type. */
+  padding-inline: var(--spacing-8);
 }
 .nav__links a:hover { color: var(--color-mid-gray); text-decoration: none; }
 
@@ -399,6 +406,7 @@ a:hover { text-decoration: underline; }
   .nav__cta { display: none; }
   .nav.is-open .nav__links {
     display: flex;
+    align-items: flex-start;
     position: absolute;
     left: 0;
     right: 0;
@@ -410,7 +418,7 @@ a:hover { text-decoration: underline; }
     border-bottom: 1px solid var(--color-hairline);
     padding: var(--spacing-24) var(--page-gutter) var(--spacing-32);
   }
-  .nav.is-open .nav__links a { font-size: 21px; letter-spacing: 0.005em; padding-block: 4px; }
+  .nav.is-open .nav__links a { font-size: 21px; letter-spacing: 0.011em; padding: 4px 0; }
 }
 
 /* --------------------------------------------------------------------------
@@ -599,7 +607,7 @@ a:hover { text-decoration: underline; }
   margin-bottom: var(--spacing-12);
   font-size: clamp(21px, 1.9vw, 24px);
   line-height: 1.22;
-  letter-spacing: 0.004em;
+  letter-spacing: 0.011em;
 }
 .card__body { color: var(--color-mid-gray); }
 .card__foot { margin-top: auto; padding-top: var(--spacing-24); }
@@ -707,11 +715,10 @@ a:hover { text-decoration: underline; }
   border: 0;
   border-radius: 999px;
   background: var(--color-quiet-dot);
-  opacity: 0.4;
   cursor: pointer;
-  transition: opacity 160ms ease, background-color 160ms ease;
+  transition: background-color 160ms ease;
 }
-.dots button.is-active { background: var(--color-primary-ink); opacity: 1; }
+.dots button.is-active { background: var(--color-primary-ink); }
 
 /* --------------------------------------------------------------------------
    Objection cards
