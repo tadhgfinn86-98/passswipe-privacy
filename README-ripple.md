@@ -15,12 +15,22 @@ Open `index.html` in a browser, or serve it with `python3 -m http.server`.
 ## Design system
 
 Tokens live at the top of `assets/styles.css` as CSS custom properties —
-colour, type scale, spacing, radii. The system is near-monochrome: ink on
-alternating `#ffffff` / `#f5f5f7` bands, 28px card radii, pill buttons, no
-shadows. `#0071e3` is reserved for filled CTAs and `#0066cc` for inline links.
-Colour enters only through the finish surfaces (`.finish--citrus`, `--sky`,
-`--starlight`, `--silver`, `--indigo`, `--midnight`) used on the industry,
-results and pricing cards.
+colour, type scale, spacing, radii.
+
+The palette is two values: `#ffffff` and `#232323`. Nothing else on the page
+is a colour — where hierarchy needs a softer step (secondary copy, hairlines,
+input fills) it is one of those two at reduced strength over the other, which
+stays neutral. There is no third hue anywhere.
+
+Rhythm comes from tonal inversion. `.surface-light` and `.surface-dark` each
+define four tokens — `--fg`, `--fg-2`, `--fg-3`, `--rule` (plus `--wash`) —
+and every component reads those rather than a literal, so it works on either
+ground without knowing which it is on. Bands alternate down the page, and a
+card always carries the opposite tone to the band behind it. That is the only
+mechanism: 28px radii, pill buttons, no shadows, no borders between sections.
+
+To retone a section, swap its `surface-light` / `surface-dark` class and flip
+its cards to match.
 
 Type is Inter, loaded from Google Fonts as the SF Pro substitute. Swap the
 `<link>` and `--font-display` / `--font-text` if you license something else.
