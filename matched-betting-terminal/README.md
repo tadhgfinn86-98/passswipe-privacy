@@ -8,6 +8,21 @@ PC — no cloud, no account, no internet connection needed once installed.
 
 ---
 
+## Just want to use it? Skip everything below
+
+A ready-built installer is already in this repo — no Node.js, no commands:
+
+**[installer/MatchedBettingTerminal-Setup-1.0.0.exe](installer/) → click Download → double-click it.**
+
+Windows will show a blue "Windows protected your PC" box because the app is not
+signed with a paid certificate; click **More info** → **Run anyway**. You get a
+desktop icon and a Start Menu entry. Full details in
+[installer/README.md](installer/README.md).
+
+Everything below is only for **building the app yourself** from source.
+
+---
+
 ## Part 1 — Install Node.js (one time only)
 
 Node.js is the toolkit that turns this source code into a Windows program. You
