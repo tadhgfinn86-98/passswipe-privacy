@@ -32,6 +32,27 @@ mechanism: 28px radii, pill buttons, no shadows, no borders between sections.
 To retone a section, swap its `surface-light` / `surface-dark` class and flip
 its cards to match.
 
+## The logo
+
+The lockup is live text plus an inline SVG sprig (`.brand` in `index.html`,
+used in the nav and the footer). The pale leaf and the wordmark take `--fg`,
+so the mark inverts with whatever surface it sits on; the green leaf holds
+`--brand-green` on both grounds. Add `brand--mono` to the lockup to drop the
+green and render it in the two-value palette.
+
+**Two things here are approximations, and both are one-line swaps:**
+
+- **The wordmark is set in Inter**, not the real logo typeface. The supplied
+  logo uses a rounded geometric sans with wider bowls and a distinctive
+  horizontal-bar "e". Replace the `.brand` markup with the real logo SVG when
+  you have the vector file, or add the licensed face and point
+  `--font-display` at it.
+- **`--brand-green` is `#0DB95E`**, estimated by eye from the supplied image.
+  Set the exact value from your brand file — it is declared once, at the top
+  of `assets/styles.css`, and used only by the logo.
+
+The favicon is an inline data-URI of the same two leaf paths, in `index.html`.
+
 Type is Inter, loaded from Google Fonts as the SF Pro substitute. Swap the
 `<link>` and `--font-display` / `--font-text` if you license something else.
 
@@ -55,5 +76,7 @@ Type is Inter, loaded from Google Fonts as the SF Pro substitute. Swap the
       footer.
 - [ ] **Add real contact details** — the footer currently only routes to the
       audit form.
-- [ ] Replace the placeholder ripple mark in the nav with the real logo, and
-      add a favicon and an Open Graph share image.
+- [ ] **Swap in the real logo.** The mark is rebuilt from the image you sent:
+      the wordmark is Inter rather than the licensed face, and `--brand-green`
+      is estimated. Drop in the vector file and the exact green.
+- [ ] Add an Open Graph share image.

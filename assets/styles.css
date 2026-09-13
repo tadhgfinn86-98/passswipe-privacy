@@ -4,6 +4,11 @@
   --color-ink: #232323;
   --color-paper: #ffffff;
 
+  /* The logo's leaf. The only colour outside the two-value palette, and it
+     is used by the brand mark alone — never by the UI. Set this from the
+     brand file; add .brand--mono to the lockup to drop it entirely. */
+  --brand-green: #0DB95E;
+
   /* Default (light) surface. `.surface-dark` flips these four. */
   --bg: var(--color-paper);
   --fg: var(--color-ink);
@@ -364,19 +369,57 @@ a:hover { text-decoration: underline; }
   height: 44px;
 }
 
-.nav__brand {
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.02em;
-  color: var(--fg);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-8);
-}
-.nav__brand:hover { text-decoration: none; }
+/* --------------------------------------------------------------------------
+   Brand lockup
 
-.nav__mark { width: 20px; height: 20px; flex: none; }
+   "Ripple" with the two-leaf sprig growing out of the final e. The pale leaf
+   and the wordmark take --fg, so the lockup inverts with its surface; the
+   green leaf holds its brand value on both grounds.
+   -------------------------------------------------------------------------- */
+
+.brand {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.005em;
+  line-height: 1;
+  color: var(--fg);
+  white-space: nowrap;
+}
+.brand:hover { text-decoration: none; }
+
+.brand__leaves {
+  position: absolute;
+  /* The viewBox is cropped to the artwork so the sprig spans the final "e"
+     and its overhang only — any wider and the pale leaf lands on the "l". */
+  right: -0.22em;
+  bottom: 0.52em;
+  width: 0.86em;
+  height: auto;
+  overflow: visible;
+}
+.brand__leaf-green { fill: var(--brand-green); }
+.brand__leaf-pale  { fill: var(--fg); }
+
+/* One vein, on the green leaf only. A vein on the pale leaf hollowed it out
+   at nav size, where the leaf is barely 10px across. */
+.brand__leaf-vein-green {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+/* Drops the logo to the two-value palette. */
+.brand--mono .brand__leaf-green { fill: var(--fg); }
+.brand--mono .brand__leaf-pale  { fill: var(--fg-2); }
+.brand--mono .brand__leaf-vein-green { stroke: var(--bg); }
+
+.nav__brand { font-size: 20px; }
+/* The sprig would overshoot the 44px bar at full size. */
+.nav__brand .brand__leaves { width: 0.68em; bottom: 0.46em; right: -0.18em; }
+.footer__brand { font-size: 32px; display: inline-block; margin-bottom: var(--spacing-24); }
 
 /* Stretch the nav wrapper to the full 44px bar so the links inherit it as
    their hit area rather than sitting at the height of 12px type. */
