@@ -88,7 +88,7 @@ textarea {
   display: grid;
   grid-template-columns: minmax(380px, 460px) 1fr;
   /* The calculator carries the most content, so row 1 gets the extra height. */
-  grid-template-rows: minmax(0, 1.3fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1.42fr) minmax(0, 1fr);
   grid-template-areas:
     'calc offers'
     'data betlog';

@@ -8,13 +8,13 @@ const MODE_COPY = {
     stakeLabel: 'BACK STAKE',
     stakeHint: 'Your own money staked at the bookmaker.',
     lockedLabel: 'QUALIFYING LOSS',
-    note: 'A small loss here is normal — it is the cost of unlocking the free bet.',
+    note: 'Small loss expected — the cost of unlocking the free bet.',
   },
   [MODES.FREEBET]: {
     stakeLabel: 'FREE BET AMOUNT',
     stakeHint: 'Stake not returned (SNR) — you keep the winnings only.',
     lockedLabel: 'GUARANTEED PROFIT',
-    note: 'Both outcomes are locked to the same figure, whichever way the event lands.',
+    note: 'Both outcomes lock to the same figure, whichever way it lands.',
   },
 };
 
