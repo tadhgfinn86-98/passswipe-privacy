@@ -1,0 +1,13 @@
+streamlit>=1.36
+pandas>=2.0
+requests>=2.31
+pydantic>=2.6
+python-dotenv>=1.0
+PyYAML>=6.0
+
+# Optional extras. Everything above runs the app with zero API keys.
+# Enrichment + email drafting (needs ANTHROPIC_API_KEY):
+anthropic>=1.0
+# Gmail drafts/send (needs credentials.json, off by default):
+google-api-python-client>=2.120
+google-auth-oauthlib>=1.2

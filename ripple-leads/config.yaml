@@ -1,0 +1,71 @@
+# Ripple Leads configuration.
+# Edit this file to tune the app. Restart Streamlit (or hit "Reload config"
+# in Settings) to pick up changes. Secrets never live here - they go in .env.
+
+towns:
+  # lat/lon are town centres. radius_m is how far out to search from each.
+  - {name: Worcester,  lat: 52.1936, lon: -2.2216, radius_m: 8000}
+  - {name: Pershore,   lat: 52.1108, lon: -2.0776, radius_m: 8000}
+  - {name: Malvern,    lat: 52.1103, lon: -2.3264, radius_m: 8000}
+  - {name: Droitwich,  lat: 52.2673, lon: -2.1531, radius_m: 8000}
+
+discovery:
+  overpass_url: https://overpass-api.de/api/interpreter
+  # Overpass is a shared free service. Keep the timeout generous and don't
+  # hammer it - one pull per town per session is plenty.
+  timeout_s: 180
+  pause_between_towns_s: 3
+  amenities: [restaurant, cafe, pub, fast_food, bar]
+  # Google Places is a PAID provider. Leave false unless you have a key
+  # in .env and a billing cap set on it.
+  use_google_places: false
+  google_places_radius_m: 5000
+
+scoring:
+  # Points by business type. Restaurants and takeaways produce the most
+  # food waste per site, so they score highest.
+  type_weights:
+    Restaurant: 30
+    Takeaway: 30
+    Pub: 22
+    Cafe: 20
+    Bar: 18
+    Other: 8
+  has_phone: 10
+  has_website: 8
+  has_email: 6
+  independent: 15          # awarded only when independent == "Y"
+  not_compliant_yet: 12    # awarded only when compliant_yet == "N"
+  on_route: 10             # awarded when the area matches one of your towns
+  # Estimated monthly waste spend, in GBP. First matching tier wins,
+  # so keep these in descending order of `min`.
+  spend_tiers:
+    - {min: 400, points: 20}
+    - {min: 250, points: 14}
+    - {min: 120, points: 8}
+    - {min: 1,   points: 3}
+  priority_high: 70
+  priority_medium: 45
+
+enrichment:
+  # Haiku 4.5 - the current cheap model. ~$1 per million input tokens,
+  # so a few hundred leads costs pennies. Needs ANTHROPIC_API_KEY.
+  model: claude-haiku-4-5
+  max_tokens: 700
+
+outreach:
+  company_name: Ripple Recycling
+  sender_name: ""            # your name, used to sign drafts
+  sender_email: ""           # your business email
+  reply_phone: ""
+  daily_send_cap: 20
+  opt_out_line: >-
+    If you'd rather not hear from me again, just reply STOP and I'll remove
+    you from my list straight away.
+  use_gmail: false           # off by default; see README
+
+crm:
+  use_notion: false          # off by default; needs NOTION_TOKEN in .env
+
+database:
+  path: ripple_leads.db
