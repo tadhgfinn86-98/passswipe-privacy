@@ -7,3 +7,6 @@ __pycache__/
 *.pyc
 exports/
 .venv/
+
+# Streamlit local secrets (we use .env instead, but just in case)
+.streamlit/secrets.toml

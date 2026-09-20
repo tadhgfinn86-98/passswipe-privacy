@@ -1,0 +1,19 @@
+# Makes Streamlit behave like an application rather than a web page.
+# These settings apply however you launch it - desktop.py or `streamlit run`.
+
+[client]
+# Hides the developer menu (Rerun, Record, Deploy, Settings). In a desktop
+# window those options are noise at best and confusing at worst.
+toolbarMode = "viewer"
+showErrorDetails = true
+
+[server]
+headless = true
+fileWatcherType = "none"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#2E7D5B"

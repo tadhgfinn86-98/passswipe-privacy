@@ -16,7 +16,7 @@ integrations.
 
 ## Quick start (Windows)
 
-You said you have conda. Open **Anaconda Prompt** and run these one at a time:
+One-time setup. Open **Anaconda Prompt** and run these one at a time:
 
 ```bat
 conda create -n ripple python=3.11 -y
@@ -26,19 +26,30 @@ cd path\to\ripple-leads
 pip install -r requirements.txt
 
 python selftest.py
-streamlit run app.py
 ```
 
-`streamlit run app.py` opens `http://localhost:8501` in your browser. That's the app.
+**After that, just double-click `Ripple Leads.bat`.** An application window
+opens — no terminal to keep open, no browser tab, no address to remember.
+Closing the window shuts everything down.
 
-To stop it, press `Ctrl+C` in the Anaconda Prompt window. To start it again next
-time, you only need the last two lines:
+Right-click that file → *Send to* → *Desktop (create shortcut)* to get an icon
+you can launch it from. (Right-click the shortcut → Properties → Change Icon if
+you want to give it a nicer one.)
+
+### If you prefer the terminal
+
+Both of these still work exactly as before:
 
 ```bat
 conda activate ripple
 cd path\to\ripple-leads
-streamlit run app.py
+
+python desktop.py       :: app window
+streamlit run app.py    :: browser tab, with the log visible
 ```
+
+`streamlit run app.py` is the one to use when something is wrong — it prints
+errors to the terminal where you can read them.
 
 **You do not need any API keys to start.** Run discovery, get real leads, score
 them, work the call list, and export email drafts — all with an empty `.env`.
@@ -55,6 +66,35 @@ them, work the call list, and export email drafts — all with an empty `.env`.
    funnel at the top updates itself.
 
 ---
+
+## How the desktop app works
+
+There is no separate application — it is the same code, wrapped in a window.
+`desktop.py` does this when you launch it:
+
+1. Asks Windows for a **free port**, so it never clashes with anything else you
+   have running (including another copy of Streamlit).
+2. Starts Streamlit on that port, **hidden and bound to `127.0.0.1`** — loopback
+   only, so nothing outside your laptop can reach it, not even on shared wifi.
+3. Waits until the server reports itself ready.
+4. Opens a **native window** pointed at it.
+5. When you close the window, **stops the server** and exits. No orphan
+   processes, no port left listening.
+
+A few consequences worth knowing:
+
+- **If the window fails to open**, you get your normal browser instead and the
+  app works identically. That happens when `pywebview` isn't installed.
+- **If something is broken inside the app**, Streamlit still starts and shows
+  you the error *in the window* rather than failing silently.
+- **If Streamlit can't start at all** (wrong environment, missing packages), the
+  launcher notices within a second and tells you what to check, rather than
+  hanging.
+- The developer menu is hidden via `.streamlit/config.toml`, so it looks like an
+  app rather than a web page. Delete `toolbarMode = "viewer"` from that file if
+  you ever want it back.
+
+The window is 1400×900 and resizable, down to 900×600.
 
 ## What's free and what costs money
 
@@ -265,7 +305,10 @@ This is guidance to keep you thinking, not legal advice.
 
 | File | What it does |
 |---|---|
+| `Ripple Leads.bat` | Double-click this. The Windows launcher |
+| `desktop.py` | Starts the hidden server and opens the app window |
 | `app.py` | The Streamlit dashboard — four tabs and the funnel |
+| `.streamlit/config.toml` | Makes it look like an app, not a web page |
 | `config.py` / `config.yaml` | Settings loading; towns, radius, weights, caps |
 | `models.py` | The `Lead` data model and the dedupe key |
 | `db.py` | All the SQLite: schema, reads, writes, grid edits, send log |
@@ -274,7 +317,7 @@ This is guidance to keep you thinking, not legal advice.
 | `score.py` | The 0–100 rubric, priority bands and lane derivation |
 | `outreach.py` | Drafting, `.eml`/CSV export, send guards, optional Gmail |
 | `crm.py` | Optional Notion push |
-| `selftest.py` | 53 offline checks — no keys, no network, no spend |
+| `selftest.py` | 63 offline checks — no keys, no network, no spend |
 
 `requirements.txt` is everything the app needs to run free. The two Google
 libraries Gmail needs are in `requirements-optional.txt` instead — they have
@@ -289,6 +332,14 @@ Copying that one file is a complete backup.
 ---
 
 ## Troubleshooting
+
+**Double-clicking the .bat does nothing, or a window flashes and vanishes** —
+the conda environment name doesn't match. Open `Ripple Leads.bat` in Notepad and
+change `ripple` on the `CALL conda activate` line to whatever you called yours.
+To see the actual error, run `python desktop.py` from Anaconda Prompt instead.
+
+**It opens in a browser instead of a window** — `pywebview` didn't install.
+Run `pip install pywebview`. The app is perfectly usable either way.
 
 **`streamlit: command not found`** — the conda environment isn't active. Run
 `conda activate ripple` first.
@@ -325,6 +376,12 @@ loudly with the parse error.
 - **The live Anthropic, Gmail and Notion calls are likewise unverified** — no
   credentials were available at build time. Their request shapes and every
   failure path are tested against stand-in clients.
+- **The app window itself is untested.** The launcher's machinery is covered
+  end to end by `selftest.py` — a real server is started, checked, and shut
+  down, and the port confirmed released. But this was built on a headless Linux
+  container with no display and no way to install `pywebview`, so the one thing
+  I could not run is the window appearing. If it doesn't, you'll get the browser
+  fallback and a message saying so.
 - **`est_monthly_spend` is yours to fill in.** Nothing estimates it for you;
   guessing it from a building footprint would be inventing data. Put in what you
   learn on the call, and the score updates.

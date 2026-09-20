@@ -255,6 +255,50 @@ def main() -> int:
     check("a title column under any name still gets filled",
           "Company" in crm.build_properties(notion_lead, {"Company": {"type": "title"}}))
 
+    print("\nDesktop launcher")
+    import desktop
+
+    port = desktop.find_free_port()
+    check("a free port is found", isinstance(port, int) and 1024 < port < 65536, str(port))
+    check("two calls do not return the same port in use",
+          desktop.find_free_port() != 0)
+
+    command = desktop.streamlit_command(port)
+    check("the launcher uses this same Python environment",
+          command[0] == sys.executable and command[1:3] == ["-m", "streamlit"])
+    check("the server binds to loopback only, not the whole network",
+          "--server.address" in command
+          and command[command.index("--server.address") + 1] == "127.0.0.1")
+    check("headless mode is on, so no stray browser tab or email prompt",
+          "--server.headless" in command)
+
+    print("  ...starting a real server, this takes a few seconds")
+    process = desktop.start_server(port)
+    ready = desktop.wait_until_ready(port, process, timeout_s=60)
+    check("the server starts and reports itself ready", ready)
+
+    if ready:
+        import requests as _requests
+        check("the health endpoint answers 'ok'",
+              _requests.get(desktop.health_url(port), timeout=5).text.strip() == "ok")
+        check("the app itself serves a page",
+              _requests.get(desktop.app_url(port), timeout=15).status_code == 200)
+
+    desktop.stop_server(process)
+    check("closing the app stops the server", process.poll() is not None)
+
+    import socket as _socket
+    probe = _socket.socket()
+    probe.settimeout(2)
+    try:
+        probe.connect(("127.0.0.1", port))
+        released = False
+    except OSError:
+        released = True
+    finally:
+        probe.close()
+    check("the port is released, leaving nothing running", released)
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed: " + ", ".join(FAILURES))

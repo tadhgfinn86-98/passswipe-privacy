@@ -12,6 +12,11 @@ PyYAML>=6.0
 # Costs nothing until a key is present.
 anthropic>=1.0
 
+# The desktop app window. If this ever fails to install on a machine,
+# delete this line - desktop.py falls back to opening your browser and
+# everything else still works.
+pywebview>=5.0
+
 # Gmail drafts/sending needs extra libraries with native dependencies.
 # They are NOT installed here on purpose, so a problem building them can
 # never stop the rest of the app working. Only if you want Gmail:
