@@ -474,6 +474,31 @@ def _render_draft_panel(frame: pd.DataFrame, outreach) -> None:
     st.caption("A .eml file opens straight into Outlook, Thunderbird or Windows Mail "
                "with the recipient and text already filled in - you press send.")
 
+    # --- optional integrations, only shown when switched on ---------------
+    import crm
+
+    extras = st.columns([1, 1, 2])
+    if outreach.gmail_available(cfg):
+        if extras[0].button("Save to Gmail drafts", key="do_gmail_draft",
+                            disabled=not (subject and body)):
+            db.update_lead(lead.id, draft_subject=subject, draft_body=body)
+            result = outreach.create_gmail_draft(lead, subject, body, cfg)
+            if result["ok"]:
+                st.success("Drafted in Gmail. Open Gmail, read it once more, press send.")
+            else:
+                st.error(result["error"])
+    if crm.available(cfg):
+        if extras[1].button("Push to Notion", key="do_notion"):
+            result = crm.push_lead(lead, cfg)
+            if result["ok"]:
+                st.success(f"Pushed. [Open in Notion]({result['url']})")
+                st.caption("Sent: " + ", ".join(result["sent_properties"]))
+            else:
+                st.error(result["error"])
+    if not outreach.gmail_available(cfg) and not crm.available(cfg):
+        st.caption("Gmail and Notion are switched off. Turn them on in config.yaml "
+                   "once you have the credentials - see the README.")
+
 
 def _render_queue(outreach) -> None:
     """Lane (c): what is approved and ready, and what the cap allows today."""
@@ -510,10 +535,38 @@ def _render_queue(outreach) -> None:
         st.download_button("Download it", path.read_bytes(), file_name=path.name,
                            mime="text/csv", key="q_download")
 
-    st.caption("Gmail draft-push and capped sending arrive in milestone 4.")
+    # --- sending, one at a time and always gated --------------------------
+    st.markdown("**Send**")
+    if not outreach.gmail_available(cfg):
+        st.caption("Gmail sending is off. Export the .eml files above and send them "
+                   "from your own mail client instead - same result, no setup. "
+                   "To switch Gmail on, see the README.")
+        return
+
+    st.caption("One at a time, on purpose. Each send is checked against the cap, "
+               "the approval tick and the opt-out line at the moment you press it.")
+    for lead in approved:
+        allowed, reason = outreach.send_guard(lead, cfg=cfg)
+        row = st.columns([3, 2, 1])
+        row[0].write(f"**{lead.business}** → {lead.email}")
+        row[1].caption(reason or "Ready to send.")
+        if row[2].button("Send", key=f"send_{lead.id}", disabled=not allowed):
+            result = outreach.send_gmail(lead, lead.draft_subject, lead.draft_body, cfg)
+            if result["ok"]:
+                st.success(f"Sent to {lead.business}. {result['remaining']} left today.")
+                st.rerun()
+            else:
+                st.error(result["error"])
 
 
 # --- Settings tab ----------------------------------------------------------
+
+def outreach_ready() -> bool:
+    import outreach
+
+    return outreach.gmail_available(cfg)
+
+
 
 def render_settings() -> None:
     st.subheader("Settings")
@@ -522,6 +575,27 @@ def render_settings() -> None:
     st.caption("Presence only - your keys are never displayed or logged.")
     for label, present in config.key_status().items():
         st.write(("✅ " if present else "⬜ ") + label + ("" if present else "  (not configured)"))
+
+    st.markdown("**Switches**")
+    import crm
+
+    switches = {
+        "Google Places discovery": bool(cfg.get("discovery.use_google_places", False)),
+        "Gmail drafts and sending": bool(cfg.get("outreach.use_gmail", False)),
+        "Notion CRM push": bool(cfg.get("crm.use_notion", False)),
+    }
+    for label, on in switches.items():
+        st.write(("🟢 on   " if on else "⚪ off  ") + label)
+    ready = {
+        "Gmail is usable right now": outreach_ready(),
+        "Notion is usable right now": crm.available(cfg),
+    }
+    for label, ok in ready.items():
+        st.caption(("yes - " if ok else "no - ") + label.lower()
+                   + ("" if ok else " (needs both the switch in config.yaml and the "
+                                   "credentials in .env)"))
+    st.caption(f"Daily send cap: {cfg.get('outreach.daily_send_cap', 20)} · "
+               f"sent today: {db.sends_today()}")
 
     st.markdown("**Scoring rubric**")
     st.caption("Edit these in config.yaml, then press Reload and Rescore all on the Leads tab.")

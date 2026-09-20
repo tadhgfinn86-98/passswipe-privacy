@@ -293,3 +293,140 @@ def cap_status(cfg: Optional[config.Config] = None) -> dict[str, int]:
     cap = int(cfg.get("outreach.daily_send_cap", 20))
     used = db.sends_today()
     return {"cap": cap, "used": used, "remaining": max(0, cap - used)}
+
+
+# --- optional Gmail integration --------------------------------------------
+# Off unless `outreach.use_gmail: true` in config.yaml AND you have completed
+# the Google Cloud setup in the README. Everything above this line works
+# without any of it.
+
+# gmail.compose covers creating drafts and sending. It deliberately does not
+# grant read access to your mailbox - this tool never reads your email.
+GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.compose"]
+
+
+def gmail_available(cfg: Optional[config.Config] = None) -> bool:
+    cfg = cfg or config.load()
+    return bool(cfg.get("outreach.use_gmail", False)) and config.gmail_credentials_file().exists()
+
+
+def _gmail_service():
+    """Build an authorised Gmail client.
+
+    The first call opens a browser window for you to approve access, then
+    caches the result in token.json so later runs are silent. Both files are
+    in .gitignore.
+    """
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+    from googleapiclient.discovery import build
+
+    token_path = config.gmail_token_file()
+    creds = None
+    if token_path.exists():
+        creds = Credentials.from_authorized_user_file(str(token_path), GMAIL_SCOPES)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                str(config.gmail_credentials_file()), GMAIL_SCOPES)
+            creds = flow.run_local_server(port=0)
+        token_path.write_text(creds.to_json(), encoding="utf-8")
+
+    return build("gmail", "v1", credentials=creds)
+
+
+def _encoded_message(lead: Lead, subject: str, body: str,
+                     cfg: Optional[config.Config] = None) -> dict[str, str]:
+    import base64
+
+    message = build_eml(lead, subject, body, cfg)
+    # Gmail wants the raw RFC-822 message, base64url encoded.
+    return {"raw": base64.urlsafe_b64encode(bytes(message)).decode()}
+
+
+def send_guard(lead: Lead, body: str = "", cfg: Optional[config.Config] = None) -> tuple[bool, str]:
+    """Every reason we would refuse to send, checked in one place.
+
+    The UI calls this to disable the send button and explain why, and
+    send_gmail() calls it again immediately before sending - so the rule holds
+    even if the UI is wrong.
+    """
+    cfg = cfg or config.load()
+    body = body or lead.draft_body
+
+    if not lead.email:
+        return False, "This lead has no email address."
+    if not lead.approved:
+        return False, "Not approved. Tick 'Approved' on the draft first."
+    if not (lead.draft_subject and body):
+        return False, "There is no draft to send."
+    if not has_opt_out(body, cfg):
+        return False, "This draft has no opt-out line. Put one back before sending."
+    if cap_status(cfg)["remaining"] <= 0:
+        return False, f"Daily cap of {cap_status(cfg)['cap']} already reached. Try tomorrow."
+    return True, ""
+
+
+def create_gmail_draft(lead: Lead, subject: str, body: str,
+                       cfg: Optional[config.Config] = None) -> dict[str, Any]:
+    """Put the draft in your Gmail Drafts folder. Does NOT send it.
+
+    This is the safest of the three email routes: you still open Gmail and
+    press send yourself, so it is not gated on the daily cap.
+    """
+    cfg = cfg or config.load()
+    if not gmail_available(cfg):
+        return {"ok": False, "error": "Gmail is off. Set outreach.use_gmail: true and "
+                                      "follow the Gmail setup in the README."}
+    try:
+        service = _gmail_service()
+        draft = service.users().drafts().create(
+            userId="me", body={"message": _encoded_message(lead, subject, body, cfg)}
+        ).execute()
+    except ImportError:
+        return {"ok": False, "error": "Google libraries not installed. Run: "
+                                      "pip install google-api-python-client google-auth-oauthlib"}
+    except Exception as exc:  # googleapiclient raises a wide variety of errors
+        return {"ok": False, "error": f"Gmail refused the draft: {exc}"}
+
+    return {"ok": True, "id": draft.get("id", "")}
+
+
+def send_gmail(lead: Lead, subject: str, body: str,
+               cfg: Optional[config.Config] = None) -> dict[str, Any]:
+    """Actually send. Gated on approval, an opt-out line, and the daily cap."""
+    cfg = cfg or config.load()
+    if not gmail_available(cfg):
+        return {"ok": False, "error": "Gmail is off. Set outreach.use_gmail: true and "
+                                      "follow the Gmail setup in the README."}
+
+    allowed, reason = send_guard(lead, body, cfg)
+    if not allowed:
+        return {"ok": False, "error": reason}
+
+    try:
+        service = _gmail_service()
+        service.users().messages().send(
+            userId="me", body=_encoded_message(lead, subject, body, cfg)
+        ).execute()
+    except ImportError:
+        return {"ok": False, "error": "Google libraries not installed. Run: "
+                                      "pip install google-api-python-client google-auth-oauthlib"}
+    except Exception as exc:
+        return {"ok": False, "error": f"Gmail refused to send: {exc}"}
+
+    # Only recorded after Gmail confirms, so a failure doesn't burn a slot.
+    import db
+    from models import now_iso
+
+    db.log_send(lead.id, "gmail", subject)
+    updates: dict[str, Any] = {"last_contacted": now_iso()[:10]}
+    if lead.status in ("To research", "To contact"):
+        updates["status"] = "Contacted"
+    db.update_lead(lead.id, **updates)
+
+    return {"ok": True, "remaining": cap_status(cfg)["remaining"]}

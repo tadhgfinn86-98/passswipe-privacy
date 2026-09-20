@@ -1,3 +1,5 @@
+# Core - everything the app needs to run fully without any API keys:
+# OSM discovery, scoring, the leads table, drafting by hand, .eml/CSV export.
 streamlit>=1.36
 pandas>=2.0
 requests>=2.31
@@ -5,9 +7,12 @@ pydantic>=2.6
 python-dotenv>=1.0
 PyYAML>=6.0
 
-# Optional extras. Everything above runs the app with zero API keys.
-# Enrichment + email drafting (needs ANTHROPIC_API_KEY):
+# Optional but light and pure-Python: AI enrichment and email drafting.
+# Installed by default so it works the moment you add ANTHROPIC_API_KEY.
+# Costs nothing until a key is present.
 anthropic>=1.0
-# Gmail drafts/send (needs credentials.json, off by default):
-google-api-python-client>=2.120
-google-auth-oauthlib>=1.2
+
+# Gmail drafts/sending needs extra libraries with native dependencies.
+# They are NOT installed here on purpose, so a problem building them can
+# never stop the rest of the app working. Only if you want Gmail:
+#     pip install -r requirements-optional.txt

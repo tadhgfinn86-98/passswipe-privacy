@@ -215,6 +215,46 @@ def main() -> int:
     check("a logged send counts against the cap",
           outreach.cap_status()["remaining"] == cap["cap"] - 1)
 
+    print("\nSend guards and optional integrations")
+    guard_lead = Lead(id=lead.id, business="X", email="a@b.c", approved=False,
+                      draft_subject="s", draft_body="Body. Reply STOP to unsubscribe.")
+    check("an unapproved lead cannot be sent",
+          outreach.send_guard(guard_lead)[0] is False)
+    guard_lead.approved = True
+    check("an approved lead with an opt-out can be sent",
+          outreach.send_guard(guard_lead)[0] is True,
+          outreach.send_guard(guard_lead)[1])
+    guard_lead.draft_body = "Body with the footer deleted."
+    check("a draft with no opt-out cannot be sent",
+          outreach.send_guard(guard_lead)[0] is False)
+    check("a lead with no email cannot be sent",
+          outreach.send_guard(Lead(business="Y", approved=True, draft_subject="s",
+                                   draft_body="Reply STOP"))[0] is False)
+
+    check("Gmail is off by default", outreach.gmail_available() is False)
+    check("sending is refused while Gmail is off",
+          outreach.send_gmail(guard_lead, "s", "b")["ok"] is False)
+
+    import crm
+    check("Notion is off by default", crm.available() is False)
+    check("a Notion push is refused while it is off",
+          crm.push_lead(guard_lead)["ok"] is False)
+
+    notion_lead = Lead(business="The Olive Branch", type="Restaurant", phone="01905 1",
+                       email="a@b.c", website="olive.example", score=88)
+    props = crm.build_properties(notion_lead, {
+        "Name": {"type": "title"}, "Type": {"type": "select"},
+        "Website": {"type": "url"}, "Score": {"type": "number"},
+        "Something": {"type": "files"}})
+    check("Notion properties match the database's own column types",
+          props["Score"] == {"number": 88.0} and props["Type"] == {"select": {"name": "Restaurant"}})
+    check("a URL without a scheme is fixed up",
+          props["Website"] == {"url": "https://olive.example"})
+    check("column types we cannot fill are skipped, not sent empty",
+          "Something" not in props)
+    check("a title column under any name still gets filled",
+          "Company" in crm.build_properties(notion_lead, {"Company": {"type": "title"}}))
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed: " + ", ".join(FAILURES))

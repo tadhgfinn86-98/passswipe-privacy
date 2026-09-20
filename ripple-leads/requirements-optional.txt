@@ -1,0 +1,9 @@
+# Only needed for the optional Gmail integration (drafts and capped sending).
+# Skip this file entirely unless you have set outreach.use_gmail: true and
+# completed the Google Cloud setup in the README.
+#
+#     pip install -r requirements-optional.txt
+#
+# Everything else in the app works without these.
+google-api-python-client>=2.120
+google-auth-oauthlib>=1.2
