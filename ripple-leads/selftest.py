@@ -144,6 +144,77 @@ def main() -> int:
         for label, ok, detail in results:
             check(label, ok, detail)
 
+    print("\nEnrichment (with a stand-in for the API, so no key or spend needed)")
+    import enrich
+    import outreach
+
+    class _Block:
+        type = "text"
+        def __init__(self, text): self.text = text
+
+    class _Usage:
+        input_tokens, output_tokens = 500, 80
+
+    class _Response:
+        stop_reason = "end_turn"
+        def __init__(self, text):
+            self.content, self.usage = [_Block(text)], _Usage()
+
+    class _Messages:
+        def __init__(self, payload): self.payload, self.kwargs = payload, None
+        def create(self, **kwargs):
+            self.kwargs = kwargs
+            return _Response(self.payload)
+
+    class _Client:
+        def __init__(self, payload): self.messages = _Messages(payload)
+
+    import json as _json
+    # Pick the one with an email - the .eml checks below need a recipient.
+    lead = next(l for l in db.all_leads() if l.email)
+
+    client = _Client(_json.dumps({"independent": "unknown",
+                                  "independent_reason": "not enough information",
+                                  "opener": "", "first_lane": "Call"}))
+    result = enrich.enrich_lead(lead, client=client)
+    check("enrichment parses a response", result["ok"], str(result))
+    check("'unknown' is passed through unchanged", result["independent"] == "unknown")
+    check("an empty opener is allowed rather than invented", result["opener"] == "")
+    schema = client.messages.kwargs["output_config"]["format"]["schema"]
+    check("the model is constrained to Y/N/unknown",
+          schema["properties"]["independent"]["enum"] == ["Y", "N", "unknown"])
+    check("no extra fields can come back", schema["additionalProperties"] is False)
+
+    broken = _Client("this is not json")
+    check("a malformed response is reported, not crashed",
+          enrich.enrich_lead(lead, client=broken)["ok"] is False)
+
+    print("\nDrafting and export")
+    draft_client = _Client(_json.dumps({"subject": "About your bin collections",
+                                        "body": "A short body with no footer."}))
+    draft = outreach.draft_email(lead, client=draft_client)
+    check("a draft comes back", draft["ok"], str(draft))
+    check("the opt-out line is added in Python, not by the model",
+          outreach.has_opt_out(draft["body"]), draft.get("body", "")[-120:])
+    check("a draft stripped of its footer is detected",
+          outreach.has_opt_out("Hello. Buy my thing. Thanks, Sam") is False)
+    check("a hand-written opt-out is accepted",
+          outreach.has_opt_out("Hello. Reply STOP to unsubscribe.") is True)
+
+    message = outreach.build_eml(lead, "Subject here", draft["body"])
+    check("the .eml addresses the lead", message["To"] == lead.email, str(message["To"]))
+    check("the .eml carries the subject", message["Subject"] == "Subject here")
+
+    no_email = next(l for l in db.all_leads() if not l.email)
+    check("a lead with no email produces an .eml with no recipient, not 'None'",
+          outreach.build_eml(no_email, "s", "b")["To"] is None)
+
+    cap = outreach.cap_status()
+    check("the daily cap starts unspent", cap["remaining"] == cap["cap"], str(cap))
+    db.log_send(lead.id, "test", "x")
+    check("a logged send counts against the cap",
+          outreach.cap_status()["remaining"] == cap["cap"] - 1)
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} check(s) failed: " + ", ".join(FAILURES))

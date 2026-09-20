@@ -14,7 +14,7 @@ import streamlit as st
 import config
 import db
 import score as scoring
-from models import BUSINESS_TYPES, LANES, PRIORITIES, STATUSES, TRISTATE
+from models import BUSINESS_TYPES, LANES, OPEN_STATUSES, PRIORITIES, STATUSES, TRISTATE
 
 st.set_page_config(page_title="Ripple Leads", page_icon="R", layout="wide")
 
@@ -75,7 +75,7 @@ def render_discover() -> None:
         st.error("No towns configured. Add some to config.yaml under `towns:`.")
         return
 
-    chosen = st.multiselect("Towns to search", towns, default=towns)
+    chosen = st.multiselect("Towns to search", towns, default=towns, key="disc_towns")
     radii = {t["name"]: t.get("radius_m", 8000) for t in cfg.towns}
     if chosen:
         st.caption(
@@ -84,7 +84,7 @@ def render_discover() -> None:
             + ". Change these in config.yaml."
         )
 
-    if st.button("Run discovery", type="primary", disabled=not chosen):
+    if st.button("Run discovery", type="primary", disabled=not chosen, key="run_discovery"):
         import discover  # imported lazily so the app loads fast
 
         log = st.empty()
@@ -126,15 +126,17 @@ def render_discover() -> None:
 def _filters(frame: pd.DataFrame) -> pd.DataFrame:
     """Sidebar-style filter row above the grid."""
     row1 = st.columns([2, 1, 1, 1])
-    search = row1[0].text_input("Search", placeholder="business, street or notes")
-    types = row1[1].multiselect("Type", BUSINESS_TYPES)
-    priorities = row1[2].multiselect("Priority", PRIORITIES)
-    lanes = row1[3].multiselect("Lane", LANES)
+    search = row1[0].text_input("Search", placeholder="business, street or notes",
+                               key="f_search")
+    types = row1[1].multiselect("Type", BUSINESS_TYPES, key="f_type")
+    priorities = row1[2].multiselect("Priority", PRIORITIES, key="f_priority")
+    lanes = row1[3].multiselect("Lane", LANES, key="f_lane")
 
     row2 = st.columns([2, 2, 1])
-    statuses = row2[0].multiselect("Status", STATUSES)
-    areas = row2[1].multiselect("Area", sorted(a for a in frame["area"].unique() if a))
-    min_score = row2[2].slider("Min score", 0, 100, 0, step=5)
+    statuses = row2[0].multiselect("Status", STATUSES, key="f_status")
+    areas = row2[1].multiselect("Area", sorted(a for a in frame["area"].unique() if a),
+                                key="f_area")
+    min_score = row2[2].slider("Min score", 0, 100, 0, step=5, key="f_minscore")
 
     view = frame
     if search:
@@ -221,7 +223,7 @@ def render_leads() -> None:
         )
 
         buttons = st.columns([1, 1, 4])
-        if buttons[0].button("Save changes", type="primary"):
+        if buttons[0].button("Save changes", type="primary", key="leads_save"):
             saved = db.apply_edits(grid, edited, EDITABLE)
             if saved:
                 scoring.rescore_all(cfg)
@@ -230,7 +232,7 @@ def render_leads() -> None:
                 st.info("Nothing changed.")
             st.rerun()
 
-        if buttons[1].button("Rescore all"):
+        if buttons[1].button("Rescore all", key="leads_rescore"):
             updated = scoring.rescore_all(cfg)
             st.success(f"Rescored - {updated} lead(s) changed.")
             st.rerun()
@@ -297,7 +299,7 @@ def _danger_zone(frame: pd.DataFrame) -> None:
         options = {f"{r.business} ({r.area})": int(r.id) for r in frame.itertuples()}
         chosen = st.selectbox("Lead to delete", list(options), key="delete_pick")
         confirm = st.checkbox("Yes, delete it permanently", key="delete_confirm")
-        if st.button("Delete", disabled=not confirm):
+        if st.button("Delete", disabled=not confirm, key="leads_delete"):
             db.delete_lead(options[chosen])
             st.success(f"Deleted {chosen}.")
             st.rerun()
@@ -306,8 +308,209 @@ def _danger_zone(frame: pd.DataFrame) -> None:
 # --- Outreach tab ----------------------------------------------------------
 
 def render_outreach() -> None:
+    import outreach
+
     st.subheader("Outreach")
-    st.info("Built in milestone 3.")
+    frame = db.leads_dataframe()
+    if frame.empty:
+        st.info("No leads yet. Run a discovery pull first.")
+        return
+
+    lane_calls, lane_email, lane_queue = st.tabs(
+        ["Call & walk-in list", "Email drafts", "Queue & approvals"]
+    )
+    with lane_calls:
+        _render_call_list(frame, outreach)
+    with lane_email:
+        _render_draft_panel(frame, outreach)
+    with lane_queue:
+        _render_queue(outreach)
+
+
+def _render_call_list(frame: pd.DataFrame, outreach) -> None:
+    """Lane (a): who to ring or walk into, best first."""
+    st.write("Your ranked list for the phone and the van. Highest score first.")
+
+    columns = st.columns([1, 1, 2])
+    lanes = columns[0].multiselect("Lane", ["Call", "Walk-in"], default=["Call", "Walk-in"],
+                                   key="cl_lane")
+    only_open = columns[1].checkbox("Hide closed leads", value=True, key="cl_open")
+    areas = columns[2].multiselect("Area", sorted(a for a in frame["area"].unique() if a),
+                                   key="cl_area")
+
+    view = frame[frame["suggested_lane"].isin(lanes)] if lanes else frame
+    if only_open:
+        view = view[view["status"].isin(OPEN_STATUSES)]
+    if areas:
+        view = view[view["area"].isin(areas)]
+    view = view.sort_values("score", ascending=False)
+
+    st.caption(f"{len(view)} leads.")
+    st.dataframe(
+        view[["score", "priority", "business", "type", "area", "phone",
+              "address", "status", "next_action"]],
+        hide_index=True, width="stretch", height=420,
+        column_config={"score": st.column_config.ProgressColumn(
+            "Score", min_value=0, max_value=100, format="%d")},
+    )
+
+    if st.button("Export this list as CSV", disabled=view.empty, key="cl_export"):
+        leads = [db.get_lead(int(i)) for i in view["id"]]
+        path = outreach.export_call_list([l for l in leads if l], cfg)
+        st.success(f"Saved to {path}")
+        st.download_button("Download it", path.read_bytes(), file_name=path.name,
+                           mime="text/csv", key="cl_download")
+
+    st.caption("Walk-ins and calls need no consent under UK marketing rules - "
+               "this lane is always safe, and it is where most OpenStreetMap "
+               "leads will land, because few list an email address.")
+
+
+def _render_draft_panel(frame: pd.DataFrame, outreach) -> None:
+    """Lane (b): enrich a lead, draft an email, review it, export it."""
+    with st.expander("Before you send cold email (UK) - read once", expanded=False):
+        st.markdown(outreach.COMPLIANCE_NOTE)
+
+    emailable = frame[frame["email"].fillna("") != ""]
+    if emailable.empty:
+        st.warning(
+            "None of your leads have an email address yet. OpenStreetMap rarely "
+            "carries them. Add addresses by hand on the Leads tab, or work the "
+            "call and walk-in lane instead."
+        )
+        return
+
+    options = {f"{r.business} ({r.area}) - score {r.score}": int(r.id)
+               for r in emailable.sort_values("score", ascending=False).itertuples()}
+    chosen = st.selectbox("Lead", list(options), key="draft_pick")
+    lead = db.get_lead(options[chosen])
+    if lead is None:
+        return
+
+    facts = st.columns(4)
+    facts[0].metric("Score", lead.score)
+    facts[1].metric("Priority", lead.priority)
+    facts[2].metric("Independent", lead.independent)
+    facts[3].metric("Status", lead.status)
+    st.caption(f"{lead.email} · {lead.address or 'no address on record'}")
+
+    # --- enrichment -------------------------------------------------------
+    st.markdown("**1. Enrich (optional)**")
+    import enrich as enrichment
+
+    if not enrichment.available(cfg):
+        st.caption("No Anthropic key set, so this is manual. Set `independent` and "
+                   "write an opener yourself on the Leads tab - everything else "
+                   "works exactly the same.")
+    if st.button("Enrich with AI", disabled=not enrichment.available(cfg), key="do_enrich"):
+        with st.spinner("Asking the model..."):
+            result = enrichment.enrich_lead(lead, cfg)
+        if not result["ok"]:
+            st.error(result["error"])
+        else:
+            db.update_lead(lead.id, independent=result["independent"],
+                           opener=result["opener"])
+            scoring.rescore_all(cfg)
+            cost = enrichment.estimate_cost(result["input_tokens"], result["output_tokens"])
+            st.success(
+                f"Independent: **{result['independent']}** - {result['independent_reason']}  \n"
+                f"Suggested first lane: **{result['first_lane']}**  \n"
+                f"Cost: about £{cost:.4f}"
+            )
+            if not result["opener"]:
+                st.info("The model had nothing specific and truthful to open with, so it "
+                        "returned nothing rather than inventing a compliment. That is "
+                        "working as intended.")
+            st.rerun()
+
+    if lead.opener:
+        st.info(f"Opener on file: {lead.opener}")
+
+    # --- drafting ---------------------------------------------------------
+    st.markdown("**2. Draft**")
+    if st.button("Generate email draft", type="primary", key="do_draft",
+                 disabled=not outreach.available(cfg)):
+        with st.spinner("Writing..."):
+            result = outreach.draft_email(lead, cfg)
+        if not result["ok"]:
+            st.error(result["error"])
+        else:
+            db.update_lead(lead.id, draft_subject=result["subject"],
+                           draft_body=result["body"])
+            st.rerun()
+    if not outreach.available(cfg):
+        st.caption("No Anthropic key - write the draft yourself below and it will "
+                   "export just the same.")
+
+    # --- review -----------------------------------------------------------
+    st.markdown("**3. Review and edit**")
+    st.caption("Nothing is sent from this screen. Edit freely - you have the last word.")
+    subject = st.text_input("Subject", value=lead.draft_subject, key=f"subj_{lead.id}")
+    body = st.text_area("Body", value=lead.draft_body or outreach.assemble_body(lead, "", cfg),
+                        height=320, key=f"body_{lead.id}")
+
+    if body and not outreach.has_opt_out(body, cfg):
+        st.warning("This draft has no opt-out line. UK rules expect one on every "
+                   "marketing email. Put it back before you send.")
+
+    row = st.columns([1, 1, 1, 2])
+    if row[0].button("Save draft", key="do_save_draft"):
+        db.update_lead(lead.id, draft_subject=subject, draft_body=body)
+        st.success("Saved.")
+        st.rerun()
+
+    approved = row[1].checkbox("Approved", value=lead.approved, key=f"appr_{lead.id}",
+                               help="Nothing can be sent until you tick this.")
+    if approved != lead.approved:
+        db.update_lead(lead.id, approved=approved)
+        st.rerun()
+
+    if row[2].button("Export .eml", disabled=not (subject and body), key="do_export_eml"):
+        db.update_lead(lead.id, draft_subject=subject, draft_body=body)
+        path = outreach.export_eml(lead, subject, body, cfg)
+        st.success(f"Saved to {path}")
+        st.download_button("Download it", path.read_bytes(), file_name=path.name,
+                           mime="message/rfc822", key="do_download_eml")
+    st.caption("A .eml file opens straight into Outlook, Thunderbird or Windows Mail "
+               "with the recipient and text already filled in - you press send.")
+
+
+def _render_queue(outreach) -> None:
+    """Lane (c): what is approved and ready, and what the cap allows today."""
+    status = outreach.cap_status(cfg)
+    columns = st.columns(3)
+    columns[0].metric("Daily cap", status["cap"])
+    columns[1].metric("Sent today", status["used"])
+    columns[2].metric("Remaining", status["remaining"])
+    st.caption("The cap counts real sends recorded in the database, so restarting "
+               "the app does not reset it. Change it in config.yaml.")
+
+    approved = [l for l in db.all_leads() if l.approved and l.draft_subject and l.draft_body]
+    if not approved:
+        st.info("Nothing approved yet. Draft an email, then tick 'Approved' on the "
+                "Email drafts tab.")
+        return
+
+    st.write(f"**{len(approved)} lead(s) approved and ready.**")
+    st.dataframe(
+        [{"Business": l.business, "To": l.email, "Score": l.score,
+          "Subject": l.draft_subject,
+          "Opt-out present": "yes" if outreach.has_opt_out(l.draft_body, cfg) else "NO"}
+         for l in approved],
+        hide_index=True, width="stretch",
+    )
+
+    buttons = st.columns([1, 1, 2])
+    if buttons[0].button("Export all as .eml", key="q_eml"):
+        paths = [outreach.export_eml(l, l.draft_subject, l.draft_body, cfg) for l in approved]
+        st.success(f"Wrote {len(paths)} files to {outreach.EXPORT_DIR}")
+    if buttons[1].button("Export all as CSV", key="q_csv"):
+        path = outreach.export_csv(approved, cfg=cfg)
+        st.success(f"Saved to {path}")
+        st.download_button("Download it", path.read_bytes(), file_name=path.name,
+                           mime="text/csv", key="q_download")
+
+    st.caption("Gmail draft-push and capped sending arrive in milestone 4.")
 
 
 # --- Settings tab ----------------------------------------------------------
@@ -328,7 +531,7 @@ def render_settings() -> None:
     st.dataframe(cfg.towns, hide_index=True, width="stretch")
 
     st.caption(f"Config file: `{config.CONFIG_PATH}` · database: `{cfg.db_path}`")
-    if st.button("Reload config.yaml"):
+    if st.button("Reload config.yaml", key="settings_reload"):
         config.reload()
         st.success("Reloaded. Switch tabs to see the new values.")
         st.rerun()
