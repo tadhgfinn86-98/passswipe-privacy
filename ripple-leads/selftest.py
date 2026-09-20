@@ -101,6 +101,39 @@ def main() -> int:
     db.update_lead(lead_id, not_a_real_column="boom")
     check("unknown columns are ignored rather than crashing", True)
 
+    print("\nSaving edits from the grid")
+    import pandas as pd
+
+    grid = db.leads_dataframe()[["id", "status", "notes", "est_monthly_spend",
+                                 "next_action_date"]].copy()
+    grid["next_action_date"] = pd.to_datetime(grid["next_action_date"], errors="coerce")
+    edited = grid.copy()
+    editable = ["status", "notes", "est_monthly_spend", "next_action_date"]
+
+    check("an untouched grid saves nothing",
+          db.apply_edits(grid, edited, editable) == 0)
+
+    edited.loc[edited.index[0], "status"] = "Quote sent"
+    edited.loc[edited.index[0], "est_monthly_spend"] = 350.0
+    edited.loc[edited.index[0], "next_action_date"] = pd.Timestamp("2026-10-01")
+    changed_id = int(grid.iloc[0]["id"])
+    check("one edited row saves one lead",
+          db.apply_edits(grid, edited, editable) == 1)
+
+    saved_lead = db.get_lead(changed_id)
+    check("status saved", saved_lead.status == "Quote sent", saved_lead.status)
+    check("spend saved as a number", saved_lead.est_monthly_spend == 350.0,
+          str(saved_lead.est_monthly_spend))
+    check("date saved as YYYY-MM-DD text",
+          saved_lead.next_action_date == "2026-10-01", saved_lead.next_action_date)
+
+    cleared = edited.copy()
+    cleared.loc[cleared.index[0], "next_action_date"] = pd.NaT
+    db.apply_edits(edited, cleared, editable)
+    check("clearing a date stores an empty string, not 'NaT'",
+          db.get_lead(changed_id).next_action_date == "",
+          repr(db.get_lead(changed_id).next_action_date))
+
     print("\nScoring")
     try:
         import score

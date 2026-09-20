@@ -157,6 +157,53 @@ def delete_lead(lead_id: int) -> None:
         conn.execute("DELETE FROM leads WHERE id=?", (lead_id,))
 
 
+def apply_edits(before: pd.DataFrame, after: pd.DataFrame, columns: list[str]) -> int:
+    """Save the cells that changed between two versions of the grid.
+
+    Streamlit hands back the whole table after an edit, so we compare it
+    against what we rendered and write only the differences. That keeps
+    updated_at honest and avoids 400 pointless UPDATEs every time you fix one
+    phone number.
+
+    The two frames must be row-aligned (same rows, same order) - the caller
+    renders `before` and receives `after` from the same editor, so they are.
+
+    Returns the number of leads that changed.
+    """
+    saved = 0
+    for position in range(len(after)):
+        old_row, new_row = before.iloc[position], after.iloc[position]
+        changes: dict[str, Any] = {}
+
+        for column in columns:
+            old_value, new_value = old_row[column], new_row[column]
+
+            if column == "next_action_date":
+                # The grid uses real dates; the database stores 'YYYY-MM-DD'.
+                new_value = _date_to_text(new_value)
+                old_value = _date_to_text(old_value)
+            elif column == "est_monthly_spend":
+                new_value = None if pd.isna(new_value) else float(new_value)
+                old_value = None if pd.isna(old_value) else float(old_value)
+            else:
+                new_value = "" if pd.isna(new_value) else str(new_value)
+                old_value = "" if pd.isna(old_value) else str(old_value)
+
+            if old_value != new_value:
+                changes[column] = new_value
+
+        if changes:
+            update_lead(int(old_row["id"]), **changes)
+            saved += 1
+    return saved
+
+
+def _date_to_text(value: Any) -> str:
+    if value is None or pd.isna(value):
+        return ""
+    return pd.Timestamp(value).strftime("%Y-%m-%d")
+
+
 # --- reads -----------------------------------------------------------------
 
 def get_lead(lead_id: int) -> Optional[Lead]:
