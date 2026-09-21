@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# secrets
+.env
+.env.local
+.env.*.local
+
+# runtime configuration written by /setup (keep the folder, ignore its contents)
+data/*
+!data/.gitkeep
+
+# logs
+*.log
+npm-debug.log*
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
