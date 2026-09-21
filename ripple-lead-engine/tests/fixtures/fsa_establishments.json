@@ -1,0 +1,64 @@
+{
+  "establishments": [
+    {
+      "FHRSID": 1234567,
+      "BusinessName": "The Olive Branch Ltd",
+      "BusinessType": "Restaurant/Cafe/Canteen",
+      "BusinessTypeID": 1,
+      "AddressLine1": "12 Friar Street",
+      "AddressLine2": "",
+      "AddressLine3": "Worcester",
+      "AddressLine4": "Worcestershire",
+      "PostCode": "WR1 2NA",
+      "RatingValue": "5",
+      "RatingDate": "2025-03-11T00:00:00",
+      "LocalAuthorityName": "Worcester City",
+      "PhoneNumber": "01905 123456",
+      "geocode": { "longitude": "-2.2201", "latitude": "52.1889" }
+    },
+    {
+      "FHRSID": 1234568,
+      "BusinessName": "Severn Valley Warehousing",
+      "BusinessType": "Distributors/Transporters",
+      "BusinessTypeID": 7,
+      "AddressLine1": "Unit 4 Blackpole Trading Estate",
+      "AddressLine2": "Blackpole Road",
+      "AddressLine3": "Worcester",
+      "AddressLine4": "",
+      "PostCode": "wr39lt",
+      "RatingValue": "AwaitingInspection",
+      "LocalAuthorityName": "Worcester City",
+      "PhoneNumber": "",
+      "geocode": { "longitude": null, "latitude": null }
+    },
+    {
+      "FHRSID": 1234569,
+      "BusinessName": "Bella's Cafe",
+      "BusinessType": "Restaurant/Cafe/Canteen",
+      "AddressLine1": "3 High Street",
+      "AddressLine2": "Droitwich",
+      "AddressLine3": "",
+      "AddressLine4": "",
+      "PostCode": "WR9 8ER",
+      "RatingValue": "4",
+      "LocalAuthorityName": "Wychavon",
+      "geocode": { "longitude": "-2.1533", "latitude": "52.2673" }
+    },
+    {
+      "FHRSID": 1234570,
+      "BusinessName": "",
+      "BusinessType": "Other catering premises",
+      "AddressLine1": "Mobile unit",
+      "PostCode": "WR5 1AA",
+      "RatingValue": "Exempt",
+      "geocode": null
+    }
+  ],
+  "meta": {
+    "dataSource": "Lucene",
+    "totalCount": 4,
+    "pageSize": 200,
+    "pageNumber": 1
+  },
+  "links": []
+}

@@ -1,0 +1,20 @@
+{
+  "items": [
+    {
+      "title": "BELLAS CAFE LIMITED",
+      "company_number": "09876543",
+      "company_status": "active",
+      "company_type": "ltd",
+      "date_of_creation": "2014-02-18",
+      "address": { "postal_code": "WR9 8ER", "locality": "Droitwich" }
+    },
+    {
+      "title": "BELLAS CAFE LIMITED",
+      "company_number": "11111111",
+      "company_status": "active",
+      "company_type": "ltd",
+      "date_of_creation": "2020-01-01",
+      "address": { "postal_code": "M1 1AA", "locality": "Manchester" }
+    }
+  ]
+}

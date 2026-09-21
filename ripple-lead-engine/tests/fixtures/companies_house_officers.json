@@ -1,0 +1,8 @@
+{
+  "items": [
+    { "name": "PATEL, Anita", "officer_role": "director", "appointed_on": "2014-02-18" },
+    { "name": "SMITH, John Andrew", "officer_role": "director", "appointed_on": "2016-05-02",
+      "resigned_on": "2019-08-01" },
+    { "name": "ACME SECRETARIES LTD", "officer_role": "corporate-secretary" }
+  ]
+}
