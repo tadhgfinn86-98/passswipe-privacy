@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ripple Lead Engine</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='2.5' fill='%231d6f5c'/%3E%3Ccircle cx='8' cy='8' r='5.5' fill='none' stroke='%231d6f5c' stroke-width='1.2' opacity='.55'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --ink: #16191d;
+    --muted: #5f6873;
+    --line: #e2e6ea;
+    --accent: #1d6f5c;
+    --accent-soft: #e6f2ee;
+    --warn: #8a5a00;
+    --warn-soft: #fdf3e0;
+    --danger: #a32b2b;
+    --danger-soft: #fbeaea;
+    --radius: 10px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171a; --panel: #1c2024; --ink: #e8eaed; --muted: #9aa4af;
+      --line: #2c3238; --accent: #4bbfa0; --accent-soft: #17332c;
+      --warn: #e0b055; --warn-soft: #33290f; --danger: #e08585; --danger-soft: #331a1a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171a; --panel: #1c2024; --ink: #e8eaed; --muted: #9aa4af;
+    --line: #2c3238; --accent: #4bbfa0; --accent-soft: #17332c;
+    --warn: #e0b055; --warn-soft: #33290f; --danger: #e08585; --danger-soft: #331a1a;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 18px 16px; border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  header h1 { font-size: 17px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .layout {
+    display: grid; grid-template-columns: 320px 1fr; gap: 16px;
+    padding: 16px; max-width: 1500px; margin: 0 auto; align-items: start;
+  }
+  .layout > * { min-width: 0; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  @media (max-width: 560px) { .layout, header { padding-left: 16px; padding-right: 16px; } }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px;
+  }
+  .card + .card { margin-top: 16px; }
+  .card h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); margin: 0 0 12px; font-weight: 650;
+  }
+
+  label { display: block; font-size: 13px; margin-bottom: 4px; color: var(--muted); }
+  input[type=text], input[type=number], select {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--line);
+    border-radius: 7px; background: var(--bg); color: var(--ink); font: inherit; font-size: 14px;
+  }
+  .field { margin-bottom: 12px; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; min-width: 0; }
+  .check { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 9px; font-size: 14px; }
+  .check input { margin-top: 3px; flex: none; }
+  .check span small { display: block; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+  button {
+    font: inherit; font-size: 14px; border-radius: 8px; padding: 9px 14px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .actions { display: flex; gap: 8px; }
+  .actions button { flex: 1; }
+
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 99px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .pill.ok { background: var(--accent-soft); color: var(--accent); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); }
+  .pill.bad { background: var(--danger-soft); color: var(--danger); }
+
+  .keys { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .keys div { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+
+  .progress-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .bar { flex: 1; min-width: 180px; height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.3s ease; }
+  .stages { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+  .stages span {
+    font-size: 11px; padding: 2px 7px; border-radius: 5px;
+    background: var(--bg); border: 1px solid var(--line); color: var(--muted);
+  }
+  .stages span.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .stages span.past { background: var(--accent-soft); border-color: var(--accent-soft); color: var(--accent); }
+
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs button { padding: 6px 11px; font-size: 13px; }
+  .tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .tabs .count { opacity: 0.75; font-variant-numeric: tabular-nums; }
+
+  .toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+  .toolbar input { flex: 1; min-width: 160px; }
+
+  table { width: 100%; min-width: 660px; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 8px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--muted); cursor: pointer; user-select: none; white-space: nowrap;
+    position: sticky; top: 0; background: var(--panel); z-index: 1;
+  }
+  th:hover { color: var(--ink); }
+  tbody tr:hover { background: var(--bg); }
+  .score { font-variant-numeric: tabular-nums; font-weight: 650; }
+  .scorebar { height: 3px; background: var(--accent); border-radius: 2px; margin-top: 3px; }
+  .name { font-weight: 550; }
+  .sub { color: var(--muted); font-size: 12px; }
+  .mono { font-family: var(--mono); font-size: 12px; }
+  .tablewrap {
+    max-height: 60vh; overflow: auto; border: 1px solid var(--line);
+    border-radius: 8px; max-width: 100%;
+  }
+  .empty { padding: 36px 16px; text-align: center; color: var(--muted); }
+  .why { cursor: pointer; }
+  .why-row td { background: var(--bg); font-size: 12px; color: var(--muted); }
+  .why-row .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+  .why-row .chips b { background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-weight: 500; }
+
+  .logs {
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.55;
+    max-height: 210px; overflow: auto; background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px;
+  }
+  .logs div { white-space: pre-wrap; word-break: break-word; }
+  .logs .warning { color: var(--warn); }
+  .logs .error { color: var(--danger); }
+  .logs .name { color: var(--muted); font-weight: 400; }
+
+  .note {
+    font-size: 12.5px; color: var(--muted); background: var(--bg);
+    border-left: 2px solid var(--line); padding: 8px 10px; border-radius: 0 6px 6px 0;
+  }
+  .note.warn { border-left-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+  .downloads { display: flex; flex-wrap: wrap; gap: 8px; }
+  .downloads a {
+    font-size: 13px; text-decoration: none; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 7px; padding: 6px 11px;
+  }
+  .downloads a:hover { border-color: var(--accent); color: var(--accent); }
+  .status-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ripple Lead Engine</h1>
+  <span class="sub">Trade-waste leads for Worcester &amp; surrounds</span>
+  <span style="flex:1"></span>
+  <span id="runstatus" class="pill ok">idle</span>
+</header>
+
+<div class="layout">
+
+  <!-- ─────────── controls ─────────── -->
+  <div>
+    <div class="card">
+      <h2>Run</h2>
+
+      <div class="field">
+        <label for="mode">What to build</label>
+        <select id="mode">
+          <option value="all" selected>Both sides</option>
+          <option value="clients">Clients — businesses that pay for collection</option>
+          <option value="carriers">Carriers — licensed haulers &amp; sites</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="towns">Towns (comma separated)</label>
+        <input type="text" id="towns" value="Worcester">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="radius">Radius (miles)</label>
+          <input type="number" id="radius" value="30" min="1" max="200">
+        </div>
+        <div class="field">
+          <label for="minScore">Min score</label>
+          <input type="number" id="minScore" value="0" min="0" max="100">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="areas">Postcode areas</label>
+        <input type="text" id="areas" value="WR, DY, B, GL, HR">
+      </div>
+
+      <label class="check">
+        <input type="checkbox" id="demo" checked>
+        <span>Demo mode
+          <small>Runs the whole pipeline against bundled sample data. No network, no keys, no spend.</small>
+        </span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="useCompaniesHouse" checked>
+        <span>Companies House
+          <small>Needed for the email/call split to mean anything.</small>
+        </span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="useWebsites" checked>
+        <span>Scrape websites <small>Respects robots.txt. Free.</small></span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="usePlaces">
+        <span>Google Places <small>The only step that costs money.</small></span>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="geocode" checked>
+        <span>Geocode postcodes <small>Exact distances via postcodes.io (free).</small></span>
+      </label>
+
+      <div id="eafields" style="display:none">
+        <div class="field">
+          <label for="eaCarriersCsv">EA carriers CSV (optional path)</label>
+          <input type="text" id="eaCarriersCsv" placeholder="data/waste-carriers.csv">
+        </div>
+        <div class="field">
+          <label for="eaSitesCsv">EA sites CSV (optional path)</label>
+          <input type="text" id="eaSitesCsv" placeholder="data/permits.csv">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="run" class="primary">Run</button>
+        <button id="cancel" disabled>Stop</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>API keys</h2>
+      <div class="keys" id="keys"></div>
+      <div class="note" style="margin-top:10px">
+        Keys are read from the environment and never sent to this page.
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── results ─────────── -->
+  <div>
+    <div class="card">
+      <h2>Progress</h2>
+      <div class="progress-wrap">
+        <div class="bar"><i id="bar"></i></div>
+        <span class="sub mono" id="stagelabel">not started</span>
+      </div>
+      <div class="stages" id="stages"></div>
+      <div id="message" class="note" style="margin-top:12px; display:none"></div>
+    </div>
+
+    <div class="card">
+      <h2>Results</h2>
+      <div class="status-line" id="downloads"></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="toolbar">
+        <input type="text" id="filter" placeholder="Filter by name, postcode, type, email…">
+        <span class="sub" id="shown"></span>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr id="head"></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Log</h2>
+      <div class="logs" id="logs"><div class="sub">Nothing yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const COLUMNS = [
+  { key: 'score',        label: 'Score', width: '74px' },
+  { key: 'name',         label: 'Business' },
+  { key: 'businessType', label: 'Type' },
+  { key: 'postcode',     label: 'Postcode' },
+  { key: 'contact',      label: 'Contact' },
+  { key: 'channel',      label: 'Outreach' },
+  { key: 'distance',     label: 'Miles' },
+];
+
+const TABS = [
+  ['all', 'All'], ['clients', 'Clients'], ['carriers', 'Carriers'],
+  ['email_queue', 'Email queue'], ['call_queue', 'Call queue'],
+];
+
+let state = { leads: [], counts: {}, status: 'idle', files: {} };
+let tab = 'all';
+let sortKey = 'score';
+let sortDir = -1;
+let expanded = new Set();
+let polling = null;
+
+/* ── talking to the server ─────────────────────────────── */
+
+async function loadSettings() {
+  const s = await (await fetch('/api/settings')).json();
+  $('stages').innerHTML = s.stages.map(n => `<span data-stage="${n}">${n}</span>`).join('');
+  $('keys').innerHTML = [
+    ['companiesHouse', 'Companies House', 'required for email queue'],
+    ['googlePlaces', 'Google Places', 'optional, paid'],
+    ['airtable', 'Airtable', 'optional'],
+    ['notion', 'Notion', 'optional'],
+  ].map(([k, label, note]) => `
+    <div><span>${label} <small class="sub">${note}</small></span>
+    <span class="pill ${s.keys[k] ? 'ok' : 'warn'}">${s.keys[k] ? 'set' : 'not set'}</span></div>
+  `).join('');
+}
+
+async function startRun() {
+  const payload = {
+    mode: $('mode').value,
+    towns: $('towns').value.split(',').map(t => t.trim()).filter(Boolean),
+    areas: $('areas').value.split(',').map(t => t.trim()).filter(Boolean),
+    radius: Number($('radius').value),
+    minScore: Number($('minScore').value),
+    demo: $('demo').checked,
+    useCompaniesHouse: $('useCompaniesHouse').checked,
+    useWebsites: $('useWebsites').checked,
+    usePlaces: $('usePlaces').checked,
+    geocode: $('geocode').checked,
+    eaCarriersCsv: $('eaCarriersCsv').value,
+    eaSitesCsv: $('eaSitesCsv').value,
+  };
+  const res = await fetch('/api/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    showMessage(err.error || 'Could not start', true);
+    return;
+  }
+  expanded.clear();
+  poll();
+}
+
+async function poll() {
+  clearInterval(polling);
+  const tick = async () => {
+    try {
+      state = await (await fetch('/api/state')).json();
+    } catch (e) {
+      return;   // server gone; leave the last view on screen
+    }
+    render();
+    if (state.status !== 'running') clearInterval(polling);
+  };
+  polling = setInterval(tick, 600);
+  tick();
+}
+
+/* ── rendering ─────────────────────────────────────────── */
+
+function render() {
+  const running = state.status === 'running';
+  $('run').disabled = running;
+  $('cancel').disabled = !running;
+
+  const badge = $('runstatus');
+  badge.textContent = state.status + (state.demo && state.status !== 'idle' ? ' · demo' : '');
+  badge.className = 'pill ' + (state.status === 'error' ? 'bad'
+    : state.status === 'running' ? 'warn' : 'ok');
+
+  const pct = state.stageTotal ? (state.stageIndex / state.stageTotal) * 100 : 0;
+  $('bar').style.width = pct + '%';
+  $('stagelabel').textContent = state.stage
+    ? `${state.stage} (${state.stageIndex}/${state.stageTotal})` : 'not started';
+
+  document.querySelectorAll('#stages span').forEach((el, i) => {
+    el.className = i + 1 === state.stageIndex ? 'active'
+      : i + 1 < state.stageIndex ? 'past' : '';
+  });
+
+  if (state.message) showMessage(state.message, state.status === 'error');
+  renderLogs();
+  renderDownloads();
+  renderTabs();
+  renderTable();
+}
+
+function showMessage(text, isError) {
+  const el = $('message');
+  el.style.display = 'block';
+  el.textContent = text;
+  el.className = 'note' + (isError ? ' warn' : '');
+}
+
+function renderLogs() {
+  const box = $('logs');
+  const logs = state.logs || [];
+  if (!logs.length) { box.innerHTML = '<div class="sub">Nothing yet.</div>'; return; }
+  const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.innerHTML = logs.map(l =>
+    `<div class="${escapeHtml(l.level)}"><span class="name">${escapeHtml(l.name)}</span> ${escapeHtml(l.text)}</div>`
+  ).join('');
+  if (atBottom) box.scrollTop = box.scrollHeight;
+}
+
+function renderDownloads() {
+  const files = state.files || {};
+  const labels = Object.keys(files);
+  $('downloads').innerHTML = labels.length
+    ? '<span class="sub">Download:</span><span class="downloads">' + labels.map(l =>
+        `<a href="/api/download/${encodeURIComponent(l)}.csv" download>${l}.csv</a>`).join('') + '</span>'
+    : '';
+}
+
+function renderTabs() {
+  const counts = state.counts || {};
+  $('tabs').innerHTML = TABS.map(([key, label]) =>
+    `<button data-tab="${key}" class="${tab === key ? 'on' : ''}">${label}
+      <span class="count">${counts[key] ?? 0}</span></button>`
+  ).join('');
+  document.querySelectorAll('#tabs button').forEach(b =>
+    b.onclick = () => { tab = b.dataset.tab; renderTabs(); renderTable(); });
+}
+
+function visibleLeads() {
+  let leads = state.leads || [];
+  if (tab === 'clients') leads = leads.filter(l => l.category === 'client');
+  else if (tab === 'carriers') leads = leads.filter(l => l.category !== 'client');
+  else if (tab === 'email_queue') leads = leads.filter(l => l.emailSafe);
+  else if (tab === 'call_queue') leads = leads.filter(l => l.callable && l.category === 'client');
+
+  const q = $('filter').value.trim().toLowerCase();
+  if (q) {
+    leads = leads.filter(l => [l.name, l.postcode, l.businessType, l.email, l.phone, l.town]
+      .some(v => (v || '').toLowerCase().includes(q)));
+  }
+
+  return [...leads].sort((a, b) => {
+    let x = sortKey === 'contact' ? (a.email || a.phone || '') : a[sortKey];
+    let y = sortKey === 'contact' ? (b.email || b.phone || '') : b[sortKey];
+    if (x == null) x = sortDir === 1 ? Infinity : -Infinity;
+    if (y == null) y = sortDir === 1 ? Infinity : -Infinity;
+    if (typeof x === 'string') return sortDir * x.localeCompare(y);
+    return sortDir * (x - y);
+  });
+}
+
+function renderTable() {
+  $('head').innerHTML = COLUMNS.map(c =>
+    `<th data-key="${c.key}" ${c.width ? `style="width:${c.width}"` : ''}>${c.label}${
+      sortKey === c.key ? (sortDir === 1 ? ' ↑' : ' ↓') : ''}</th>`).join('');
+  document.querySelectorAll('#head th').forEach(th => th.onclick = () => {
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir = -sortDir;
+    else { sortKey = key; sortDir = (key === 'name' || key === 'businessType') ? 1 : -1; }
+    renderTable();
+  });
+
+  const leads = visibleLeads();
+  $('shown').textContent = leads.length ? `${leads.length} shown` : '';
+
+  if (!leads.length) {
+    $('rows').innerHTML = `<tr><td colspan="${COLUMNS.length}"><div class="empty">${
+      state.status === 'running' ? 'Working…'
+      : (state.leads || []).length ? 'Nothing matches this filter.'
+      : 'No results yet. Press Run.'}</div></td></tr>`;
+    return;
+  }
+
+  $('rows').innerHTML = leads.map(l => {
+    const contact = l.email
+      ? `<span class="mono">${escapeHtml(l.email)}</span>`
+      : l.phone ? `<span class="mono">${escapeHtml(l.phone)}</span>`
+      : '<span class="sub">—</span>';
+    const channelClass = l.channel === 'email_with_optout' ? 'ok'
+      : l.channel === 'do_not_contact' ? 'bad' : 'warn';
+    const channelLabel = { email_with_optout: 'email ok', phone_or_post_only: 'phone/post',
+      do_not_contact: 'do not contact' }[l.channel] || l.channel;
+
+    const detail = expanded.has(l.id) ? `
+      <tr class="why-row"><td colspan="${COLUMNS.length}">
+        <div>Score breakdown${l.pecr ? ` · PECR: ${escapeHtml(l.pecr)}` : ''}${
+          l.companyNumber ? ` · company ${escapeHtml(l.companyNumber)} (${escapeHtml(l.companyType || '?')})` : ''}${
+          l.directors ? ` · ${escapeHtml(l.directors)}` : ''}</div>
+        <div class="chips">${Object.entries(l.breakdown || {})
+          .map(([k, v]) => `<b>${escapeHtml(k)} ${v}</b>`).join('')}</div>
+        <div class="chips"><b>sources: ${escapeHtml(l.sources || '')}</b>${
+          l.website ? `<b>${escapeHtml(l.website)}</b>` : ''}${
+          l.eaTier ? `<b>EA tier: ${escapeHtml(l.eaTier)}</b>` : ''}${
+          l.reviewCount != null ? `<b>${l.reviewCount} reviews</b>` : ''}</div>
+      </td></tr>` : '';
+
+    return `
+      <tr class="why" data-id="${l.id}">
+        <td><div class="score">${l.score}</div>
+            <div class="scorebar" style="width:${Math.max(l.score, 2)}%"></div></td>
+        <td><div class="name">${escapeHtml(l.name)}</div>
+            <div class="sub">${escapeHtml(l.town || '')}</div></td>
+        <td>${escapeHtml(l.businessType || '—')}</td>
+        <td class="mono">${escapeHtml(l.postcode || '—')}</td>
+        <td>${contact}</td>
+        <td><span class="pill ${channelClass}">${escapeHtml(channelLabel)}</span></td>
+        <td class="mono">${l.distance != null ? l.distance : '—'}</td>
+      </tr>${detail}`;
+  }).join('');
+
+  document.querySelectorAll('#rows tr.why').forEach(tr => tr.onclick = () => {
+    const id = tr.dataset.id;
+    expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+    renderTable();
+  });
+}
+
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/* ── wiring ────────────────────────────────────────────── */
+
+$('run').onclick = startRun;
+$('cancel').onclick = () => fetch('/api/cancel', { method: 'POST' });
+$('filter').oninput = renderTable;
+$('mode').onchange = toggleEaFields;
+$('demo').onchange = toggleEaFields;
+
+function toggleEaFields() {
+  const wantsCarriers = $('mode').value !== 'clients';
+  $('eafields').style.display = wantsCarriers && !$('demo').checked ? 'block' : 'none';
+}
+
+toggleEaFields();
+loadSettings();
+poll();
+</script>
+</body>
+</html>

@@ -26,7 +26,7 @@ from . import compliance, dedupe, scoring
 log = logging.getLogger(__name__)
 
 
-def build_client(cfg: Config) -> HttpClient:
+def build_client(cfg: Config, should_stop=None) -> HttpClient:
     return HttpClient(
         user_agent=cfg.user_agent,
         timeout=cfg.request_timeout,
@@ -34,6 +34,7 @@ def build_client(cfg: Config) -> HttpClient:
         max_retries=cfg.max_retries,
         cache_dir=cfg.cache_dir,
         cache_ttl_hours=cfg.cache_ttl_hours,
+        should_stop=should_stop,
     )
 
 
@@ -56,41 +57,62 @@ def collect(client: HttpClient, cfg: Config, towns: list[str],
     return leads
 
 
+# The stages a run moves through, in order, for progress reporting.
+STAGES = [
+    "collect", "dedupe", "locate", "classify",
+    "companies_house", "places", "websites", "score", "done",
+]
+
+
 def run(cfg: Config, towns: list[str] | None = None,
         include_clients: bool = True, include_supply: bool = True,
-        geocode: bool = True, client: HttpClient | None = None) -> list[Lead]:
+        geocode: bool = True, client: HttpClient | None = None,
+        on_stage=None) -> list[Lead]:
     """Run the whole pipeline and return scored, ranked leads.
 
-    `client` is injectable so tests and the offline demo can drive the whole
-    pipeline without touching the network.
+    `client` is injectable so tests, the offline demo and the web app's Demo
+    mode can drive the whole pipeline without touching the network.
+    `on_stage(name, index, total)` is called as each stage begins.
     """
     towns = towns or ["Worcester"]
     client = client or build_client(cfg)
 
+    def stage(name: str) -> None:
+        if on_stage:
+            on_stage(name, STAGES.index(name) + 1, len(STAGES))
+
+    stage("collect")
     leads = collect(client, cfg, towns, include_clients, include_supply)
     if not leads:
         log.warning("no leads collected; check source configuration and network access")
         return []
 
+    stage("dedupe")
     leads = dedupe.deduplicate(leads)
 
+    stage("locate")
     leads = annotate_distances(leads, client, cfg.hub_lat, cfg.hub_lon, geocode=geocode)
     before = len(leads)
     leads = [lead for lead in leads if within_radius(lead, cfg.radius_miles, cfg.areas)]
     log.info("radius filter: %d -> %d leads within %.0f miles", before, len(leads), cfg.radius_miles)
 
     # First pass, so the paid enrichers know which leads deserve the budget.
+    stage("classify")
     compliance.apply(leads)
     scoring.apply(leads)
 
+    stage("companies_house")
     if cfg.use_companies_house:
         companies_house.enrich(client, cfg, leads)
+    stage("places")
     if cfg.use_google_places:
         google_places.enrich(client, cfg, leads)
+    stage("websites")
     if cfg.enrich_websites:
         website.enrich(client, cfg, leads)
 
     # Second pass: enrichment changed both the legal type and the contacts.
+    stage("score")
     compliance.apply(leads)
     scoring.apply(leads)
 
@@ -101,6 +123,7 @@ def run(cfg: Config, towns: list[str] | None = None,
         scoring.apply(leads)
 
     ranked = scoring.rank(leads)
+    stage("done")
     _log_summary(ranked)
     return ranked
 

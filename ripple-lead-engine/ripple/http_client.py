@@ -12,7 +12,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import requests
 
@@ -28,6 +28,7 @@ class HttpClient:
         max_retries: int = 3,
         cache_dir: Path | None = None,
         cache_ttl_hours: float = 24.0,
+        should_stop: "Callable[[], bool] | None" = None,
     ) -> None:
         self.session = requests.Session()
         self.session.headers["User-Agent"] = user_agent
@@ -37,6 +38,9 @@ class HttpClient:
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.cache_ttl_seconds = cache_ttl_hours * 3600
         self._last_request_at = 0.0
+        # Checked before every request so a long run can be stopped from the
+        # UI without waiting for the current stage to finish.
+        self.should_stop = should_stop
         if self.cache_dir:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -178,6 +182,9 @@ class HttpClient:
         """Retry on transport errors, 429 and 5xx with exponential backoff."""
         backoff = 1.0
         for attempt in range(1, self.max_retries + 1):
+            if self.should_stop and self.should_stop():
+                log.info("stopping before %s %s", method, url)
+                return None
             self._throttle()
             try:
                 response = self.session.request(

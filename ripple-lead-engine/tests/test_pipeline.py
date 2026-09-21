@@ -8,9 +8,9 @@ from ripple.geo import haversine_miles, within_radius
 from ripple.models import CARRIER, CLIENT, FACILITY, Lead
 from ripple.outputs import csv_out
 from ripple.pipeline import compliance, run as pipeline
-from tests.fakes import DEMO_WEBSITES, OfflineClient
+from ripple.offline import DEMO_WEBSITES, OfflineClient
 
-FIXTURES = Path(__file__).parent / "fixtures"
+from ripple.offline import SAMPLE_DATA as FIXTURES
 
 
 def demo_config(**overrides) -> Config:

@@ -5,9 +5,9 @@ from pathlib import Path
 from ripple.config import Config
 from ripple.models import CARRIER, FACILITY, Lead
 from ripple.sources import companies_house, environment_agency, fsa, google_places
-from tests.fakes import OfflineClient
+from ripple.offline import OfflineClient
 
-FIXTURES = Path(__file__).parent / "fixtures"
+from ripple.offline import SAMPLE_DATA as FIXTURES
 
 
 class TestFsa(unittest.TestCase):

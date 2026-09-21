@@ -3,7 +3,7 @@ import unittest
 from ripple.config import Config
 from ripple.enrich import website
 from ripple.models import Lead
-from tests.fakes import OfflineClient
+from ripple.offline import OfflineClient
 
 
 class TestUrlNormalisation(unittest.TestCase):

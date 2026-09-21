@@ -19,7 +19,7 @@ from ripple.config import Config
 from ripple.cli import _print_top
 from ripple.outputs import csv_out
 from ripple.pipeline import run as pipeline
-from tests.fakes import DEMO_WEBSITES, OfflineClient
+from ripple.offline import DEMO_WEBSITES, OfflineClient
 
 
 def main() -> int:

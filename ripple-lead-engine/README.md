@@ -23,7 +23,36 @@ A run writes five CSVs:
 The last two are the point. They are split by what PECR allows, so the
 compliance decision is made once, in the pipeline, instead of per message.
 
-## Quick start
+## Run it in a browser
+
+```bash
+cd ripple-lead-engine
+pip install -r requirements.txt
+python -m ripple.web
+```
+
+That starts a local server and opens a browser at it. Demo mode is on by
+default, so pressing **Run** immediately exercises the whole pipeline against
+bundled sample data — no keys, no network, no spend. Untick it to run for
+real.
+
+The page gives you the settings, a live progress bar and log, the results as a
+sortable and filterable table split into the same five queues as the CSVs, and
+a download button for each. Click any row to see why it scored what it did.
+
+The pipeline still runs server-side, because that is where the API keys live
+and where a browser tab could not do the work anyway: the official APIs send
+no CORS headers, and the website enricher has to read pages cross-origin. The
+page only drives it.
+
+It binds to `127.0.0.1` only, checks the `Host` header, and reports **whether**
+each API key is set without ever sending its value to the page. Built on the
+standard library, so the browser UI adds no dependency beyond the `requests`
+the pipeline already needed.
+
+`--port N` to change port, `--no-browser` to skip opening one.
+
+## Quick start (command line)
 
 ```bash
 cd ripple-lead-engine
@@ -187,23 +216,30 @@ sources for the Worcester towns into a dated output directory.
 python -m unittest discover -s tests -t .
 ```
 
-79 tests, no network, no keys, no test dependencies. `tests/fakes.py` serves
-fixtures through the same interface as the real HTTP client, so the end-to-end
-test drives the entire pipeline offline.
+92 tests, no network, no keys, no test dependencies. `ripple/offline.py`
+serves bundled sample data through the same interface as the real HTTP client,
+so the end-to-end test drives the entire pipeline offline — and the web tests
+stand up a real server on an ephemeral port and drive its HTTP surface,
+including the host check, path-traversal refusal and a full demo run.
 
 ## Layout
 
 ```
 ripple/
+  web.py             local web app (stdlib only)
+  webui/index.html   the browser UI, no external assets
+  cli.py             command line entry point
   config.py          settings, target SIC codes and FSA business types
-  http_client.py     retries, rate limiting, disk cache
+  http_client.py     retries, rate limiting, disk cache, cancellation
   geo.py             postcode geocoding and radius filtering
   models.py          the Lead record and its normalisation rules
+  offline.py         sample-data client for demo mode and tests
+  sample_data/       bundled FSA, Companies House and EA samples
   sources/           fsa, companies_house, google_places, environment_agency
   enrich/website.py  robots-aware contact scraper
   pipeline/          dedupe, compliance, scoring, run
   outputs/           csv_out, airtable, notion
-demo.py              full offline run against fixtures
+demo.py              full offline run against the sample data
 run_nightly.sh       cron entry point
 ```
 
