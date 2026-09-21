@@ -1,0 +1,15 @@
+{
+  "name": "d7-leads-finder",
+  "version": "1.0.0",
+  "description": "Local business lead finder: keyword + location search, contact enrichment, lead scoring, CSV export.",
+  "type": "module",
+  "bin": { "d7": "./bin/d7.js" },
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node bin/d7.js",
+    "serve": "node bin/d7.js serve",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {},
+  "license": "MIT"
+}
